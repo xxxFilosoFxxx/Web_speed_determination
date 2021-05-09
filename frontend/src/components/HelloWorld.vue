@@ -13,7 +13,8 @@
     },
     methods: {
       async fetchMessage() {
-        const response = await fetch('http://localhost:8000/api/v1/test/')
+        // TODO:
+        const response = await fetch('http://localhost:8000/main/')
         this.message = await response.json()
         this.message = this.message['message']
       }
