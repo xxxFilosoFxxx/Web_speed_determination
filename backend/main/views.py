@@ -1,7 +1,5 @@
 # Create your views here.
 # from bson import ObjectId
-import pathlib
-
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
@@ -13,7 +11,6 @@ from django.conf import settings
 class LoadFileVideo(APIView):
     def post(self, request):
         filename = 'file'
-        path = pathlib.Path(settings.MEDIA_ROOT + 'video')
+        path = settings.MEDIA_ROOT + '/video'
         default_storage.save(path, ContentFile(request.FILES[filename].read()))
         return Response({'success': 'Video load in media.'}, status=200)
-
