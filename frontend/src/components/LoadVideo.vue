@@ -42,21 +42,21 @@
         }
       },
       submitFile() {
-        // let formData = new FormData();
-        // formData.append('file', this.file);
-        // axios.post( '/load_video',
-        //   formData,
-        //   {
-        //     headers: {
-        //       'Content-Type': 'multipart/form-data'
-        //     }
-        //   }
-        // ).then(function(){
-        //   console.log('SUCCESS!!');
-        // })
-        // .catch(function(){
-        //   console.log('FAILURE!!');
-        // });
+        let formData = new FormData();
+        formData.append('file', this.file);
+        axios.post( 'http://localhost:8000/main/load_video/',
+          formData,
+          {
+            headers: {
+              'Content-Type': 'multipart/form-data'
+            }
+          }
+        ).then(function(){
+          console.log('SUCCESS!!');
+        })
+        .catch(function(){
+          console.log('FAILURE!!');
+        });
       },
     },
     // async created() {

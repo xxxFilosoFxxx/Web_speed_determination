@@ -11,6 +11,6 @@ from django.conf import settings
 class LoadFileVideo(APIView):
     def post(self, request):
         filename = 'file'
-        path = settings.MEDIA_ROOT + '/video'
+        path = settings.MEDIA_ROOT + '/' + str(request.FILES[filename])
         default_storage.save(path, ContentFile(request.FILES[filename].read()))
         return Response({'success': 'Video load in media.'}, status=200)
