@@ -1,8 +1,7 @@
-from src.detection_frame import DetectionPeople
-from src.detection_frame import PATH_VIDEO
+from .src.detection_frame import DetectionPeople
 
 
-if __name__ == '__main__':
+def show_video(video):
     print("[INFO] starting save video...")
-    new_video = DetectionPeople(PATH_VIDEO)
-    new_video.save_frames()
+    new_video = DetectionPeople(video)
+    new_video.show_video()
