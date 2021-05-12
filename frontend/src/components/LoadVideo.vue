@@ -6,6 +6,9 @@
     <button v-on:click="submitFile()">Submit</button>
   </div>
 
+<!--  <div>-->
+<!--    <img src="http://localhost:8000/main/load_video/" width="100%">-->
+<!--  </div>-->
 
 </template>
 
