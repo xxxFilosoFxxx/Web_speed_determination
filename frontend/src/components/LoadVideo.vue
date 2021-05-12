@@ -1,18 +1,31 @@
 <template>
-<!--  eslint-disable -->
-  <div class="container">
+  <div>
+    <b-container>
+<!--      <input type="file" id="video" ref="file" accept="video/*" @change="handleFileUpload()">-->
+<!--      <video width="500" height="300" muted controls loop :src="videoPreview" v-show="showPreview"></video>-->
+<!--      <b-button @click="submitFile()">Submit</b-button>-->
 
-    <div>
-      <label for="video">File Preview:</label>
-      <input type="file" id="video" ref="file" accept="video/*" v-on:change="handleFileUpload()">
-      <video width="500" height="300" muted controls loop v-bind:src="videoPreview" v-show="showPreview"></video>
-      <button v-on:click="submitFile()">Submit</button>
-    </div>
+      <b-form-group label="Предварительный просмотр файла:" label-for="video">
+        <b-form-file
+          id="video"
+          v-model="file"
+          accept="video/*" plain
+        ></b-form-file>
+        <div v-if="file">
+          <p>Название файла: {{file.name}}</p>
+          <p>Размер: {{file.size}} </p>
+          <p>Тип: {{file.type}}</p>
+        </div>
+        <div ref="preview" id="preview"></div>
+        <b-button @click="submitFile()">Отправить</b-button>
+      </b-form-group>
+    </b-container>
 
-    <div class="container">
-      <h3 class="mt-5">Live Streaming</h3>
-      <img v-bind:src="imgURL" width="100%">
-    </div>
+    <b-container>
+      <h3 class="mt-5">Прямая трансляция</h3>
+      <b-img :src="imgURL" thumbnail fluid-grow alt=""></b-img>
+    </b-container>
+
   </div>
 </template>
 
@@ -24,26 +37,36 @@
     name: 'LoadVideo',
     data() {
       return {
-        file: '',
-        showPreview: false,
-        videoPreview: '',
+        file: null,
+        videoPreview: null,
         image: '',
         imgURL: 'http://localhost:8000/main/load_video/'
       }
     },
-    methods: {
-      handleFileUpload() {
-        this.file = this.$refs.file.files[0];
-        let reader  = new FileReader();
-
-        reader.addEventListener("load", function () {
-          this.showPreview = true;
-          this.videoPreview = reader.result;
-        }.bind(this), false);
-        if( this.file ) {
-          reader.readAsDataURL( this.file );
+    watch: {
+      file(val) {
+        function setAttributes(el, options) {
+           Object.keys(options).forEach(function(attr) {
+             el.setAttribute(attr, options[attr]);
+           })
         }
-      },
+        if (!val) return;
+        if (this.videoPreview) {
+          this.videoPreview.remove();
+        }
+
+        let video = document.createElement("video");
+        setAttributes(video, {'width': '640', 'height': '480', 'controls': '', 'loop': ''});
+        video.file = this.file;
+        this.videoPreview = video;
+        this.$refs.preview.appendChild(video);
+
+        let reader = new FileReader();
+        reader.onload = (e) => { this.videoPreview.src = e.target.result; };
+        reader.readAsDataURL(this.file);
+      }
+    },
+    methods: {
       submitFile() {
         let formData = new FormData();
         formData.append('file', this.file);
