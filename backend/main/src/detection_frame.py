@@ -234,12 +234,12 @@ class DetectionPeople:
 
                 # TODO:
                 _, buffer = cv2.imencode('.jpg', frame)
-                frame = buffer.tobytes()
+                image = buffer.tobytes()
                 yield (b'--frame\r\n'
-                       b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')
+                       b'Content-Type: image/jpeg\r\n\r\n' + image + b'\r\n')
 
-                if cv2.waitKey(1) >= 0:  # Break with ESC
-                    break
+                # if cv2.waitKey(1) >= 0:  # Break with ESC
+                #     break
                 fps.update()
             else:
                 break

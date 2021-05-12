@@ -1,15 +1,19 @@
 <template>
+<!--  eslint-disable -->
   <div class="container">
-    <label for="video">File Preview:</label>
-    <input type="file" id="video" ref="file" accept="video/*" v-on:change="handleFileUpload()">
-    <video width="500" height="300" muted controls loop v-bind:src="videoPreview" v-show="showPreview"></video>
-    <button v-on:click="submitFile()">Submit</button>
+
+    <div>
+      <label for="video">File Preview:</label>
+      <input type="file" id="video" ref="file" accept="video/*" v-on:change="handleFileUpload()">
+      <video width="500" height="300" muted controls loop v-bind:src="videoPreview" v-show="showPreview"></video>
+      <button v-on:click="submitFile()">Submit</button>
+    </div>
+
+    <div class="container">
+      <h3 class="mt-5">Live Streaming</h3>
+      <img v-bind:src="imgURL" width="100%">
+    </div>
   </div>
-
-<!--  <div>-->
-<!--    <img src="http://localhost:8000/main/load_video/" width="100%">-->
-<!--  </div>-->
-
 </template>
 
 <script>
@@ -17,21 +21,17 @@
   import axios from 'axios'
 
   export default {
-    name: 'HelloWorld',
+    name: 'LoadVideo',
     data() {
       return {
         file: '',
         showPreview: false,
-        videoPreview: ''
+        videoPreview: '',
+        image: '',
+        imgURL: 'http://localhost:8000/main/load_video/'
       }
     },
     methods: {
-      // async fetchMessage() {
-      //   // TODO:
-      //   const response = await fetch('http://localhost:8000/main/')
-      //   this.message = await response.json()
-      //   this.message = this.message['message']
-      // },
       handleFileUpload() {
         this.file = this.$refs.file.files[0];
         let reader  = new FileReader();
@@ -61,6 +61,11 @@
           console.log('FAILURE!!');
         });
       },
+      // async fetchMessage() {
+      //   const response = await fetch('http://localhost:8000/main/load_video/')
+      //   this.message = await response.json()
+      //   this.message = this.message['message']
+      // },
     },
     // async created() {
     //   await this.fetchMessage()
