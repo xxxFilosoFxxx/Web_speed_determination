@@ -17,4 +17,4 @@ class LoadFileVideo(APIView):
         default_storage.save(path, ContentFile(request.FILES[filename].read()))
         # show_video(path)
         return Response({'success': 'Video load in media.'}, status=200)
-        # return Response(show_video(path), content_type='multipart/x-mixed-replace; boundary=frame', status=200)
+        # return Response(show_video(path), content_type='multipart/x-mixed-replace; boundary=frame')
