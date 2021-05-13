@@ -3,11 +3,7 @@
     <b-container>
 
       <b-form-group label="Предварительный просмотр файла:" label-class="h3" label-for="video">
-        <b-form-file
-          id="video"
-          v-model="file"
-          accept="video/*" plain
-        ></b-form-file>
+        <b-form-file id="video"  v-model="file" accept="video/*" plain></b-form-file>
 
         <b-container class="p-3" v-if="file">
           <b-row>
@@ -22,9 +18,9 @@
       </b-form-group>
     </b-container>
 
-    <b-container>
+    <b-container ref="translation" id="translation" v-if="image">
       <h3 class="mt-5">Прямая трансляция</h3>
-      <b-img :src="imgURL" thumbnail fluid-grow alt=""></b-img>
+<!--      <b-img :src="image" thumbnail fluid-grow alt=""></b-img>-->
     </b-container>
 
   </div>
@@ -40,8 +36,7 @@
       return {
         file: null,
         videoPreview: null,
-        image: '',
-        imgURL: 'http://localhost:8000/main/load_video/'
+        image: null
       }
     },
     watch: {
@@ -68,6 +63,16 @@
       }
     },
     methods: {
+      async fetchImages() {
+        const response = await fetch('http://localhost:8000/main/load_video');
+        const data = await response.blob();
+        this.image = URL.createObjectURL(data);
+
+        // TODO:
+        let img = document.createElement('img');
+        img.src = this.image;
+        this.$refs.translation.appendChild(img);
+      },
       submitFile() {
         let formData = new FormData();
         formData.append('file', this.file);
@@ -84,21 +89,17 @@
         .catch(function(){
           console.log('FAILURE!!');
         });
+        this.fetchImages()
       },
-      // async fetchMessage() {
-      //   const response = await fetch('http://localhost:8000/main/load_video/')
-      //   this.message = await response.json()
-      //   this.message = this.message['message']
-      // },
     },
-    // async created() {
-    //   await this.fetchMessage()
-    // }
+    async created() {
+      await this.fetchImages();
+    }
   }
 </script>
 
 <style>
   #preview {
-    margin-top: -40px;
+    /*margin-top: -40px;*/
   }
 </style>

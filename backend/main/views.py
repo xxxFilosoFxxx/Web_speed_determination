@@ -11,12 +11,19 @@ from .src.detection_frame import DetectionPeople
 
 
 class LoadFileVideo(APIView):
-    def post(self, request):
-        filename = 'file'
-        path = settings.MEDIA_ROOT + '/' + str(request.FILES[filename])
-        default_storage.save(path, ContentFile(request.FILES[filename].read()))
+    filename = 'file'
+    path = ''
 
-        print("[INFO] starting save video...")
-        new_video = DetectionPeople(path)
-        # return Response({'success': 'Video load in media.'}, status=200)
-        return Response(new_video.translation_video(), content_type='multipart/x-mixed-replace; boundary=frame')
+    def post(self, request):
+        self.path = settings.MEDIA_ROOT + '/' + str(request.FILES[self.filename])
+        default_storage.save(self.path, ContentFile(request.FILES[self.filename].read()))
+        return Response({'success': 'Video load in media.'}, status=200)
+
+    def get(self, _):
+        # TODO:
+        if self.path:
+            print("[INFO] starting save video...")
+            new_video = DetectionPeople(self.path)
+            return Response(new_video.translation_video(), content_type='multipart/x-mixed-replace; boundary=frame')
+        else:
+            return Response(status=100)
