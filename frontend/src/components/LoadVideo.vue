@@ -1,21 +1,22 @@
 <template>
-  <div>
+  <div class="p-3 bg-light">
     <b-container>
-<!--      <input type="file" id="video" ref="file" accept="video/*" @change="handleFileUpload()">-->
-<!--      <video width="500" height="300" muted controls loop :src="videoPreview" v-show="showPreview"></video>-->
-<!--      <b-button @click="submitFile()">Submit</b-button>-->
 
-      <b-form-group label="Предварительный просмотр файла:" label-for="video">
+      <b-form-group label="Предварительный просмотр файла:" label-class="h3" label-for="video">
         <b-form-file
           id="video"
           v-model="file"
           accept="video/*" plain
         ></b-form-file>
-        <div v-if="file">
-          <p>Название файла: {{file.name}}</p>
-          <p>Размер: {{file.size}} </p>
-          <p>Тип: {{file.type}}</p>
-        </div>
+
+        <b-container class="p-3" v-if="file">
+          <b-row>
+            <b-col> Название файла: {{file.name}} </b-col>
+            <b-col> Размер: {{file.size}} </b-col>
+            <b-col> Тип: {{file.type}} </b-col>
+          </b-row>
+        </b-container>
+
         <div ref="preview" id="preview"></div>
         <b-button @click="submitFile()">Отправить</b-button>
       </b-form-group>
@@ -55,7 +56,7 @@
           this.videoPreview.remove();
         }
 
-        let video = document.createElement("video");
+        let video = document.createElement('video');
         setAttributes(video, {'width': '640', 'height': '480', 'controls': '', 'loop': ''});
         video.file = this.file;
         this.videoPreview = video;
@@ -96,7 +97,8 @@
   }
 </script>
 
-<!-- Add "scoped" attribute to limit CSS to this component only -->
 <style>
-
+  #preview {
+    margin-top: -40px;
+  }
 </style>

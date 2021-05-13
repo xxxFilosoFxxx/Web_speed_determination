@@ -21,33 +21,6 @@ PERCENT = os.environ.get('PERCENT', 0.2)
 # интервал времени, в котором выполняется поиск скорости
 TIME = os.environ.get('TIME', 1)
 
-# глобальные переменные для обработки событий мыши
-PT1 = (0, 0)
-PT2 = (0, 0)
-START_POINT = False
-END_POINT = False
-
-
-def draw_line(event, x, y, flags, param):
-    """
-    Функция обрабатывающая события мыши
-    """
-    global PT1, PT2, START_POINT, END_POINT
-
-    if event == cv2.EVENT_LBUTTONDOWN:
-        if START_POINT and END_POINT:
-            START_POINT = False
-            END_POINT = False
-            PT1 = (0, 0)
-            PT2 = (0, 0)
-
-        if not START_POINT:
-            PT1 = (x, y)
-            START_POINT = True
-        elif not END_POINT:
-            PT2 = (x, y)
-            END_POINT = True
-
 
 class DetectionPeople:
     """
@@ -194,7 +167,7 @@ class DetectionPeople:
             cv2.putText(frame, info, (20, frame.shape[0] - ((idx * 50) + 50)),
                         cv2.FONT_HERSHEY_SIMPLEX, 1.2, (0, 0, 0), 1, cv2.LINE_AA)
 
-    def show_video(self):
+    def translation_video(self):
         """
         Функция позволяет в реальном времени
         обработать видеозапись
