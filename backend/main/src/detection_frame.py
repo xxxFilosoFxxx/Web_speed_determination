@@ -168,7 +168,7 @@ class DetectionPeople:
             cv2.putText(frame, info, (20, frame.shape[0] - ((idx * 50) + 50)),
                         cv2.FONT_HERSHEY_SIMPLEX, 1.2, (0, 0, 0), 1, cv2.LINE_AA)
 
-    def translation_video(self, process_file: str):
+    def translation_video(self, process_file):
         """
         Функция позволяет в реальном времени
         обработать видеозапись
@@ -178,7 +178,7 @@ class DetectionPeople:
         if not self.cap.isOpened():
             print("[INFO] failed to process video")
             return -1
-        filename_csv = settings.MEDIA_ROOT + '/csv: %s.csv' % process_file
+        filename_csv = settings.MEDIA_ROOT + '/csv: %s.csv' % str(process_file)
         with open(filename_csv, mode="w", encoding='utf-8') as file:
             file.write("timestamp;ID;speed\r\n")
         trackers = list()
