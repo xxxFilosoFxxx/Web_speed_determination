@@ -28,6 +28,7 @@ class DetectionPeople:
     -> в реальном времени
     -> с сохранением в видеофайл
     """
+
     def __init__(self, video):
         self.cap = cv2.VideoCapture(video)
         path_prototxt = pathlib.Path("MobileNetSSD/MobileNetSSD_deploy.prototxt").resolve()
@@ -167,7 +168,7 @@ class DetectionPeople:
             cv2.putText(frame, info, (20, frame.shape[0] - ((idx * 50) + 50)),
                         cv2.FONT_HERSHEY_SIMPLEX, 1.2, (0, 0, 0), 1, cv2.LINE_AA)
 
-    def translation_video(self):
+    def translation_video(self, process_file: str):
         """
         Функция позволяет в реальном времени
         обработать видеозапись
@@ -177,7 +178,7 @@ class DetectionPeople:
         if not self.cap.isOpened():
             print("[INFO] failed to process video")
             return -1
-        filename_csv = settings.MEDIA_ROOT + '/output_csv: %r.csv' % datetime.now().strftime("%d-%m-%Y %H:%M")
+        filename_csv = settings.MEDIA_ROOT + '/csv: %s.csv' % process_file
         with open(filename_csv, mode="w", encoding='utf-8') as file:
             file.write("timestamp;ID;speed\r\n")
         trackers = list()
@@ -205,7 +206,6 @@ class DetectionPeople:
                 self.statistics_output(info, frame)
                 self.frame_count += 1
 
-                # TODO:
                 _, buffer = cv2.imencode('.jpg', frame)
                 image = buffer.tobytes()
                 yield (b'--frame\r\n'
@@ -220,7 +220,6 @@ class DetectionPeople:
         print("[INFO] elapsed time: {:.2f}".format(fps.elapsed()))
         print("[INFO] approx. FPS: {:.2f}".format(fps.fps()))
         self.cap.release()
-        # cv2.destroyAllWindows()
         return 0
 
     def save_frames(self):

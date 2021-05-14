@@ -18,9 +18,9 @@
       </b-form-group>
     </b-container>
 
-    <b-container ref="translation" id="translation" v-if="image">
+    <b-container ref="translation" id="translation">
       <h3 class="mt-5">Прямая трансляция</h3>
-<!--      <b-img :src="image" thumbnail fluid-grow alt=""></b-img>-->
+      <b-img id="image" thumbnail fluid-grow alt=""></b-img>
     </b-container>
 
   </div>
@@ -36,7 +36,8 @@
       return {
         file: null,
         videoPreview: null,
-        image: null
+        // image: null,
+        imgURL: 'http://localhost:8000/main/live_video/'
       }
     },
     watch: {
@@ -63,16 +64,6 @@
       }
     },
     methods: {
-      async fetchImages() {
-        const response = await fetch('http://localhost:8000/main/load_video');
-        const data = await response.blob();
-        this.image = URL.createObjectURL(data);
-
-        // TODO:
-        let img = document.createElement('img');
-        img.src = this.image;
-        this.$refs.translation.appendChild(img);
-      },
       submitFile() {
         let formData = new FormData();
         formData.append('file', this.file);
@@ -89,12 +80,32 @@
         .catch(function(){
           console.log('FAILURE!!');
         });
-        this.fetchImages()
+
+        let translation = this.imgURL + this.file.name;
+        axios.get(translation)
+        .then(function(){
+          console.log('translations SUCCESS!!');
+        })
+        .catch(function(){
+          console.log('translation FAILURE!!');
+        });
+
+        let img = document.getElementById('image');
+        img.src = translation;
       },
+      // async fetchImages() {
+      //   const response = await fetch('http://localhost:8000/main/load_video');
+      //   const data = await response.blob();
+      //   this.image = URL.createObjectURL(data);
+      //
+      //   let img = document.createElement('img');
+      //   img.src = this.image;
+      //   this.$refs.translation.appendChild(img);
+      // },
     },
-    async created() {
-      await this.fetchImages();
-    }
+    // async created() {
+    //   await this.fetchImages();
+    // }
   }
 </script>
 
