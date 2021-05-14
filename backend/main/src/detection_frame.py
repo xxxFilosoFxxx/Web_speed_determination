@@ -2,6 +2,7 @@
 """
 Основной скрипт для распознавания и подсчета скорости объекта
 """
+import pathlib
 from datetime import datetime
 import os
 import numpy as np
@@ -9,43 +10,16 @@ import dlib
 from cv2 import cv2
 from imutils.video import FPS
 
-from src.idtracker.centroid_tracker import CentroidTracker
-from src.idtracker.trackable_object import TrackableObject
-from src.search_speed import SearchSpeed
+from django.conf import settings
 
-# Путь к обрабатываемому видео
-PATH_VIDEO = os.environ.get('VIDEO', 'data_user/видеонаблюдение.mp4')
+from .idtracker.centroid_tracker import CentroidTracker
+from .idtracker.trackable_object import TrackableObject
+from .search_speed import SearchSpeed
+
 # процент распознавания
 PERCENT = os.environ.get('PERCENT', 0.2)
 # интервал времени, в котором выполняется поиск скорости
 TIME = os.environ.get('TIME', 1)
-
-# глобальные переменные для обработки событий мыши
-PT1 = (0, 0)
-PT2 = (0, 0)
-START_POINT = False
-END_POINT = False
-
-
-def draw_line(event, x, y, flags, param):
-    """
-    Функция обрабатывающая события мыши
-    """
-    global PT1, PT2, START_POINT, END_POINT
-
-    if event == cv2.EVENT_LBUTTONDOWN:
-        if START_POINT and END_POINT:
-            START_POINT = False
-            END_POINT = False
-            PT1 = (0, 0)
-            PT2 = (0, 0)
-
-        if not START_POINT:
-            PT1 = (x, y)
-            START_POINT = True
-        elif not END_POINT:
-            PT2 = (x, y)
-            END_POINT = True
 
 
 class DetectionPeople:
@@ -54,10 +28,13 @@ class DetectionPeople:
     -> в реальном времени
     -> с сохранением в видеофайл
     """
+
     def __init__(self, video):
         self.cap = cv2.VideoCapture(video)
-        self.net = cv2.dnn.readNetFromCaffe("MobileNetSSD/MobileNetSSD_deploy.prototxt",
-                                            "MobileNetSSD/MobileNetSSD_deploy.caffemodel")
+        path_prototxt = pathlib.Path("MobileNetSSD/MobileNetSSD_deploy.prototxt").resolve()
+        path_caffemodel = pathlib.Path("MobileNetSSD/MobileNetSSD_deploy.caffemodel").resolve()
+        self.net = cv2.dnn.readNetFromCaffe(str(path_prototxt),
+                                            str(path_caffemodel))
         self.class_name = {0: 'background', 1: 'aeroplane', 2: 'bicycle', 3: 'bird',
                            4: 'boat', 5: 'bottle', 6: 'bus', 7: 'car', 8: 'cat',
                            9: 'chair', 10: 'cow', 11: 'diningtable', 12: 'dog',
@@ -191,37 +168,23 @@ class DetectionPeople:
             cv2.putText(frame, info, (20, frame.shape[0] - ((idx * 50) + 50)),
                         cv2.FONT_HERSHEY_SIMPLEX, 1.2, (0, 0, 0), 1, cv2.LINE_AA)
 
-    def show_video(self):
+    def translation_video(self, process_file):
         """
         Функция позволяет в реальном времени
         обработать видеозапись
         """
-        key = True
         fps = FPS().start()
         centroid_tracker = CentroidTracker(max_disappeared=50, max_distance=50)
         if not self.cap.isOpened():
             print("[INFO] failed to process video")
             return -1
-        filename_csv = 'data_user/output_csv: %r.csv' % datetime.now().strftime("%d-%m-%Y %H:%M")
+        filename_csv = settings.MEDIA_ROOT + '/csv: %s.csv' % str(process_file)
         with open(filename_csv, mode="w", encoding='utf-8') as file:
             file.write("timestamp;ID;speed\r\n")
         trackers = list()
 
-        cv2.namedWindow("frames", cv2.WINDOW_NORMAL)
-        cv2.setMouseCallback("frames", draw_line)
-
         while self.cap.isOpened():
             ret, frame = self.cap.read()
-            while ret and key:
-                cv2.imshow("frames", frame)
-                if START_POINT:
-                    cv2.circle(frame, PT1, 3, (0, 0, 255), -1)
-                if START_POINT and END_POINT:
-                    cv2.line(frame, PT1, PT2, (0, 0, 255), 3)
-
-                if cv2.waitKey(1) & 0xFF == ord('c'):
-                    key = False
-                    break
 
             if ret:
                 rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
@@ -234,12 +197,22 @@ class DetectionPeople:
                     self.status_tracking(rect, rgb, frame, trackers)
                 objects = centroid_tracker.update(rect)
                 self.object_and_speed(filename_csv, objects, frame)
+
+                info = [
+                    ("Number of tracked objects", len(objects)),
+                    ("Recognition percentage", self.percent),
+                    ("Recognition object", self.class_name[15])
+                ]
+                self.statistics_output(info, frame)
                 self.frame_count += 1
 
-                cv2.imshow("frames", frame)
+                _, buffer = cv2.imencode('.jpg', frame)
+                image = buffer.tobytes()
+                yield (b'--frame\r\n'
+                       b'Content-Type: image/jpeg\r\n\r\n' + image + b'\r\n')
 
-                if cv2.waitKey(1) >= 0:  # Break with ESC
-                    break
+                # if cv2.waitKey(1) >= 0:  # Break with ESC
+                #     break
                 fps.update()
             else:
                 break
@@ -247,7 +220,6 @@ class DetectionPeople:
         print("[INFO] elapsed time: {:.2f}".format(fps.elapsed()))
         print("[INFO] approx. FPS: {:.2f}".format(fps.fps()))
         self.cap.release()
-        cv2.destroyAllWindows()
         return 0
 
     def save_frames(self):
@@ -261,8 +233,8 @@ class DetectionPeople:
             print("[INFO] failed to process video")
             return -1
         ret, frame = self.cap.read()
-        filename = 'data_user/output_video: %r.mp4' % datetime.now().strftime("%d-%m-%Y %H:%M")
-        filename_csv = 'data_user/output_csv: %r.csv' % datetime.now().strftime("%d-%m-%Y %H:%M")
+        filename = settings.MEDIA_ROOT + '/output_video: %r.mp4' % datetime.now().strftime("%d-%m-%Y %H:%M")
+        filename_csv = settings.MEDIA_ROOT + '/output_csv: %r.csv' % datetime.now().strftime("%d-%m-%Y %H:%M")
 
         out_video = cv2.VideoWriter(filename, fourcc, self.skip_frames,
                                     (frame.shape[1], frame.shape[0]))
