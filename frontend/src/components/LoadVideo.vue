@@ -18,7 +18,7 @@
       </b-form-group>
     </b-container>
 
-    <b-container ref="translation" id="translation">
+    <b-container ref="translation" id="translation" v-if="image">
       <h3 class="mt-5">Прямая трансляция</h3>
       <b-img id="image" thumbnail fluid-grow alt=""></b-img>
     </b-container>
@@ -36,7 +36,8 @@
       return {
         file: null,
         videoPreview: null,
-        // image: null,
+        image: null,
+        translationInfo: null,
         imgURL: 'http://localhost:8000/main/live_video/'
       }
     },
@@ -64,6 +65,25 @@
       }
     },
     methods: {
+      getTranslation() {
+        let translation = this.imgURL + this.file.name;
+        axios.get(translation)
+        .then(function(){
+          this.translationInfo = 'SUCCESS';
+          console.log('translations SUCCESS!!!');
+        })
+        .catch(function(){
+          this.translationInfo = null;
+          console.log('translation FAILURE!!!');
+        });
+
+        let img = document.getElementById('image');
+        img.src = translation;
+        if (this.translationInfo === 'SUCCESS') {
+          img.src = '';
+        }
+        //TODO: Если трансляция кончилась, удалить src
+      },
       submitFile() {
         let formData = new FormData();
         formData.append('file', this.file);
@@ -81,18 +101,9 @@
           console.log('FAILURE!!');
         });
 
-        let translation = this.imgURL + this.file.name;
-        axios.get(translation)
-        .then(function(){
-          console.log('translations SUCCESS!!');
-        })
-        .catch(function(){
-          console.log('translation FAILURE!!');
-        });
-
-        let img = document.getElementById('image');
-        img.src = translation;
+        this.getTranslation();
       },
+
       // async fetchImages() {
       //   const response = await fetch('http://localhost:8000/main/load_video');
       //   const data = await response.blob();
