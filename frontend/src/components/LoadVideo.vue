@@ -18,9 +18,9 @@
       </b-form-group>
     </b-container>
 
-    <b-container ref="translation" id="translation" v-if="image">
+    <b-container v-if="translationInfo">
       <h3 class="mt-5">Прямая трансляция</h3>
-      <b-img id="image" thumbnail fluid-grow alt=""></b-img>
+      <b-img ref="translation" id="translation" :src="translationInfo" thumbnail fluid-grow alt=""></b-img>
     </b-container>
 
   </div>
@@ -36,7 +36,6 @@
       return {
         file: null,
         videoPreview: null,
-        image: null,
         translationInfo: null,
         imgURL: 'http://localhost:8000/main/live_video/'
       }
@@ -66,23 +65,17 @@
     },
     methods: {
       getTranslation() {
-        let translation = this.imgURL + this.file.name;
-        axios.get(translation)
-        .then(function(){
-          this.translationInfo = 'SUCCESS';
-          console.log('translations SUCCESS!!!');
+        this.translationInfo = this.imgURL + this.file.name;
+        axios.get(this.translationInfo)
+        .then((response) => {
+          console.log('translations SUCCESS!!');
+          if (response.status === 200) {
+            this.translationInfo = null;
+          }
         })
         .catch(function(){
-          this.translationInfo = null;
-          console.log('translation FAILURE!!!');
+          console.log('translation FAILURE!!');
         });
-
-        let img = document.getElementById('image');
-        img.src = translation;
-        if (this.translationInfo === 'SUCCESS') {
-          img.src = '';
-        }
-        //TODO: Если трансляция кончилась, удалить src
       },
       submitFile() {
         let formData = new FormData();
@@ -94,29 +87,17 @@
               'Content-Type': 'multipart/form-data'
             }
           }
-        ).then(function(){
+        ).then((response) => {
           console.log('SUCCESS!!');
+          if (response.status === 200) {
+            this.getTranslation();
+          }
         })
         .catch(function(){
           console.log('FAILURE!!');
         });
-
-        this.getTranslation();
-      },
-
-      // async fetchImages() {
-      //   const response = await fetch('http://localhost:8000/main/load_video');
-      //   const data = await response.blob();
-      //   this.image = URL.createObjectURL(data);
-      //
-      //   let img = document.createElement('img');
-      //   img.src = this.image;
-      //   this.$refs.translation.appendChild(img);
-      // },
+      }
     },
-    // async created() {
-    //   await this.fetchImages();
-    // }
   }
 </script>
 
