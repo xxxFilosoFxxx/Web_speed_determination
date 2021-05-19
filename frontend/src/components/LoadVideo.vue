@@ -16,7 +16,7 @@
         <div ref="preview" id="preview"></div>
 
         <b-container v-show="file">
-          <canvas id="canvas" width="640" height="480"></canvas>
+          <canvas id="canvas"></canvas>
         </b-container>
 
         <b-button @click="submitFile()">Отправить</b-button>
@@ -45,10 +45,6 @@
         imgURL: 'http://localhost:8000/main/live_video/'
       }
     },
-    // mounted() {
-    //   let canvas = document.getElementById('canvas');
-    //   this.vueCanvas = canvas.getContext('2d');
-    // },
     watch: {
       file(val) {
         function setAttributes(el, options) {
@@ -66,32 +62,31 @@
         video.file = this.file;
         this.videoPreview = video;
         this.$refs.preview.appendChild(video);
-
         let reader = new FileReader();
         reader.onload = (e) => { this.videoPreview.src = e.target.result; };
         reader.readAsDataURL(this.file);
 
-        let canvas = document.getElementById('canvas');
-        let ctx = canvas.getContext('2d');
-        video.addEventListener('play', function() {
-          ctx.drawImage(video, 0, 0, video.width, video.height);
-          let frame = ctx.getImageData(0, 0, video.width, video.height);
-        });
+        this.vueVideo = video;
+        video.addEventListener('play', this.timerCallback, false);
       }
     },
     methods: {
-      // updateCanvas() {
-      //   this.canvas = document.getElementById('canvas');
-      //   this.ctx = this.canvas.getContext('2d');
-      //
-      // },
+      computeFrame() {
+        let canvas = document.getElementById('canvas');
+        canvas.width = this.vueVideo.width;
+        canvas.height = this.vueVideo.height;
+
+        let ctx = canvas.getContext('2d');
+        ctx.drawImage(this.vueVideo, 0, 0, this.vueVideo.width, this.vueVideo.height);
+        // const frame = ctx.getImageData(0, 0, this.vueVideo.width, this.vueVideo.height);
+      },
+      timerCallback() {
+        if (this.vueVideo.paused || this.vueVideo.ended) { return; }
+          this.computeFrame();
+          setTimeout(this.timerCallback,0);
+      },
       getTranslation() {
         this.translationInfo = this.imgURL + this.file.name;
-        // let video = document.getElementById('video');
-        // video.addEventListener('play', function() {
-        //   this.vueCanvas.drawImage(video, 0, 0, '640', '480');
-        //   let frame = this.vueCanvas.getImageData(0, 0, '640', '480');
-        // });
         axios.get(this.translationInfo)
         .then((response) => {
           console.log('translations SUCCESS!!');
