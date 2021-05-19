@@ -14,6 +14,11 @@
         </b-container>
 
         <div ref="preview" id="preview"></div>
+
+        <b-container v-show="file">
+          <canvas id="canvas" width="640" height="480"></canvas>
+        </b-container>
+
         <b-button @click="submitFile()">Отправить</b-button>
       </b-form-group>
     </b-container>
@@ -40,6 +45,10 @@
         imgURL: 'http://localhost:8000/main/live_video/'
       }
     },
+    // mounted() {
+    //   let canvas = document.getElementById('canvas');
+    //   this.vueCanvas = canvas.getContext('2d');
+    // },
     watch: {
       file(val) {
         function setAttributes(el, options) {
@@ -61,11 +70,28 @@
         let reader = new FileReader();
         reader.onload = (e) => { this.videoPreview.src = e.target.result; };
         reader.readAsDataURL(this.file);
+
+        let canvas = document.getElementById('canvas');
+        let ctx = canvas.getContext('2d');
+        video.addEventListener('play', function() {
+          ctx.drawImage(video, 0, 0, video.width, video.height);
+          let frame = ctx.getImageData(0, 0, video.width, video.height);
+        });
       }
     },
     methods: {
+      // updateCanvas() {
+      //   this.canvas = document.getElementById('canvas');
+      //   this.ctx = this.canvas.getContext('2d');
+      //
+      // },
       getTranslation() {
         this.translationInfo = this.imgURL + this.file.name;
+        // let video = document.getElementById('video');
+        // video.addEventListener('play', function() {
+        //   this.vueCanvas.drawImage(video, 0, 0, '640', '480');
+        //   let frame = this.vueCanvas.getImageData(0, 0, '640', '480');
+        // });
         axios.get(this.translationInfo)
         .then((response) => {
           console.log('translations SUCCESS!!');
