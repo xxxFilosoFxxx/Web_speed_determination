@@ -1,6 +1,6 @@
 <template>
-  <div class="p-3 bg-light">
-    <b-container>
+  <div class="container-fluid p-3 bg-light">
+    <b-container fluid="lg">
 
       <b-form-group label="Предварительный просмотр файла:" label-class="h3" label-for="video">
         <b-form-file id="video"  v-model="file" accept="video/*" plain></b-form-file>
@@ -8,19 +8,30 @@
         <b-container class="p-3" v-if="file">
           <b-row>
             <b-col> Название файла: {{file.name}} </b-col>
-            <b-col> Размер: {{file.size}} </b-col>
+            <b-col> Размер: {{file.size}} байт </b-col>
             <b-col> Тип: {{file.type}} </b-col>
           </b-row>
         </b-container>
 
-        <div ref="preview" id="preview"></div>
+        <b-container>
+          <b-row>
+            <b-col ref="preview" id="preview"></b-col>
+            <div class="w-100"></div>
+            <b-col v-show="file">
+              <p class="h3">Область для выбора параметров видеозаписи:</p>
+              <canvas id="canvas"></canvas>
+            </b-col>
+          </b-row>
+        </b-container>
+
+
         <b-button @click="submitFile()">Отправить</b-button>
       </b-form-group>
     </b-container>
 
-    <b-container ref="translation" id="translation">
+    <b-container v-if="translationInfo">
       <h3 class="mt-5">Прямая трансляция</h3>
-      <b-img id="image" thumbnail fluid-grow alt=""></b-img>
+      <b-img ref="translation" id="translation" :src="translationInfo" thumbnail fluid-grow alt=""></b-img>
     </b-container>
 
   </div>
@@ -36,7 +47,7 @@
       return {
         file: null,
         videoPreview: null,
-        // image: null,
+        translationInfo: null,
         imgURL: 'http://localhost:8000/main/live_video/'
       }
     },
@@ -53,17 +64,45 @@
         }
 
         let video = document.createElement('video');
-        setAttributes(video, {'width': '640', 'height': '480', 'controls': '', 'loop': ''});
+        setAttributes(video, {'width': '1280', 'height': '720', 'controls': '', 'loop': ''});
         video.file = this.file;
         this.videoPreview = video;
         this.$refs.preview.appendChild(video);
-
         let reader = new FileReader();
         reader.onload = (e) => { this.videoPreview.src = e.target.result; };
         reader.readAsDataURL(this.file);
+
+        video.addEventListener('play', this.timerCallback, false);
       }
     },
     methods: {
+      computeFrame() {
+        let canvas = document.getElementById('canvas');
+        canvas.width = this.videoPreview.width;
+        canvas.height = this.videoPreview.height;
+
+        let ctx = canvas.getContext('2d');
+        ctx.drawImage(this.videoPreview, 0, 0, this.videoPreview.width, this.videoPreview.height);
+        // const frame = ctx.getImageData(0, 0, this.vueVideo.width, this.vueVideo.height);
+      },
+      timerCallback() {
+        if (this.videoPreview.paused || this.videoPreview.ended) { return; }
+          this.computeFrame();
+          setTimeout(this.timerCallback,0);
+      },
+      getTranslation() {
+        this.translationInfo = this.imgURL + this.file.name;
+        axios.get(this.translationInfo)
+        .then((response) => {
+          console.log('translations SUCCESS!!');
+          if (response.status === 200) {
+            this.translationInfo = null;
+          }
+        })
+        .catch(function(){
+          console.log('translation FAILURE!!');
+        });
+      },
       submitFile() {
         let formData = new FormData();
         formData.append('file', this.file);
@@ -74,38 +113,17 @@
               'Content-Type': 'multipart/form-data'
             }
           }
-        ).then(function(){
+        ).then((response) => {
           console.log('SUCCESS!!');
+          if (response.status === 200) {
+            this.getTranslation();
+          }
         })
         .catch(function(){
           console.log('FAILURE!!');
         });
-
-        let translation = this.imgURL + this.file.name;
-        axios.get(translation)
-        .then(function(){
-          console.log('translations SUCCESS!!');
-        })
-        .catch(function(){
-          console.log('translation FAILURE!!');
-        });
-
-        let img = document.getElementById('image');
-        img.src = translation;
-      },
-      // async fetchImages() {
-      //   const response = await fetch('http://localhost:8000/main/load_video');
-      //   const data = await response.blob();
-      //   this.image = URL.createObjectURL(data);
-      //
-      //   let img = document.createElement('img');
-      //   img.src = this.image;
-      //   this.$refs.translation.appendChild(img);
-      // },
+      }
     },
-    // async created() {
-    //   await this.fetchImages();
-    // }
   }
 </script>
 
