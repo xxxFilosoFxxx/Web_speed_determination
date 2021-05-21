@@ -1,6 +1,6 @@
 <template>
   <div class="p-3 bg-light">
-    <b-container>
+    <b-container fluid="lg">
 
       <b-form-group label="Предварительный просмотр файла:" label-class="h3" label-for="video">
         <b-form-file id="video"  v-model="file" accept="video/*" plain></b-form-file>
@@ -13,11 +13,15 @@
           </b-row>
         </b-container>
 
-        <div ref="preview" id="preview"></div>
-
-        <b-container v-show="file">
-          <canvas id="canvas"></canvas>
+        <b-container>
+          <b-row>
+            <b-col cols="6" ref="preview" id="preview"></b-col>
+            <b-col cols="6" v-show="file">
+              <canvas id="canvas"></canvas>
+            </b-col>
+          </b-row>
         </b-container>
+
 
         <b-button @click="submitFile()">Отправить</b-button>
       </b-form-group>
@@ -58,7 +62,7 @@
         }
 
         let video = document.createElement('video');
-        setAttributes(video, {'width': '640', 'height': '480', 'controls': '', 'loop': ''});
+        setAttributes(video, {'width': '1280', 'height': '720', 'controls': '', 'loop': ''});
         video.file = this.file;
         this.videoPreview = video;
         this.$refs.preview.appendChild(video);
@@ -66,22 +70,21 @@
         reader.onload = (e) => { this.videoPreview.src = e.target.result; };
         reader.readAsDataURL(this.file);
 
-        this.vueVideo = video;
         video.addEventListener('play', this.timerCallback, false);
       }
     },
     methods: {
       computeFrame() {
         let canvas = document.getElementById('canvas');
-        canvas.width = this.vueVideo.width;
-        canvas.height = this.vueVideo.height;
+        canvas.width = this.videoPreview.width;
+        canvas.height = this.videoPreview.height;
 
         let ctx = canvas.getContext('2d');
-        ctx.drawImage(this.vueVideo, 0, 0, this.vueVideo.width, this.vueVideo.height);
+        ctx.drawImage(this.videoPreview, 0, 0, this.videoPreview.width, this.videoPreview.height);
         // const frame = ctx.getImageData(0, 0, this.vueVideo.width, this.vueVideo.height);
       },
       timerCallback() {
-        if (this.vueVideo.paused || this.vueVideo.ended) { return; }
+        if (this.videoPreview.paused || this.videoPreview.ended) { return; }
           this.computeFrame();
           setTimeout(this.timerCallback,0);
       },
