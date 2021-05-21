@@ -1,5 +1,5 @@
 <template>
-  <div class="p-3 bg-light">
+  <div class="container-fluid p-3 bg-light">
     <b-container fluid="lg">
 
       <b-form-group label="Предварительный просмотр файла:" label-class="h3" label-for="video">
@@ -8,15 +8,17 @@
         <b-container class="p-3" v-if="file">
           <b-row>
             <b-col> Название файла: {{file.name}} </b-col>
-            <b-col> Размер: {{file.size}} </b-col>
+            <b-col> Размер: {{file.size}} байт </b-col>
             <b-col> Тип: {{file.type}} </b-col>
           </b-row>
         </b-container>
 
         <b-container>
           <b-row>
-            <b-col cols="6" ref="preview" id="preview"></b-col>
-            <b-col cols="6" v-show="file">
+            <b-col ref="preview" id="preview"></b-col>
+            <div class="w-100"></div>
+            <b-col v-show="file">
+              <p class="h3">Область для выбора параметров видеозаписи:</p>
               <canvas id="canvas"></canvas>
             </b-col>
           </b-row>
