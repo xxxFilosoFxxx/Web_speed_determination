@@ -19,7 +19,10 @@
             <div class="w-100"></div>
             <b-col v-show="file">
               <p class="h3">Область для выбора параметров видеозаписи:</p>
-              <canvas id="canvas"></canvas>
+              <div id="drawingImage">
+                <canvas id="canvas1"></canvas>
+                <canvas id="canvas2"></canvas>
+              </div>
             </b-col>
           </b-row>
         </b-container>
@@ -48,6 +51,14 @@
         file: null,
         videoPreview: null,
         translationInfo: null,
+
+        mouse: { x:0, y:0 },
+        // draw: false,
+        // xStart: null,
+        // yStart: null,
+        // xEnd: null,
+        // yEnd: null,
+
         imgURL: 'http://localhost:8000/main/live_video/'
       }
     },
@@ -73,11 +84,15 @@
         reader.readAsDataURL(this.file);
 
         video.addEventListener('play', this.timerCallback, false);
+
+        // TODO: drawCanvas
+        this.drawOnCanvas();
+
       }
     },
     methods: {
       computeFrame() {
-        let canvas = document.getElementById('canvas');
+        let canvas = document.getElementById('canvas1');
         canvas.width = this.videoPreview.width;
         canvas.height = this.videoPreview.height;
 
@@ -90,6 +105,49 @@
           this.computeFrame();
           setTimeout(this.timerCallback,0);
       },
+      drawOnCanvas() {
+        let mouse = { x:0, y:0};
+        this.mouse = mouse;
+        let draw = false;
+        let canvasDraw = document.getElementById('canvas2');
+        let context = canvasDraw.getContext("2d");
+        canvasDraw.width = this.videoPreview.width;
+        canvasDraw.height = this.videoPreview.height;
+
+        canvasDraw.addEventListener('mousedown', (e) => {
+            mouse.x = e.offsetX;
+            mouse.y = e.offsetY;
+            draw = true;
+            context.beginPath();
+            context.moveTo(mouse.x, mouse.y);
+          }, false);
+
+        canvasDraw.addEventListener('mousemove', (e) => {
+          if (draw) {
+            mouse.x = e.offsetX;
+            mouse.y = e.offsetY;
+            context.lineTo(mouse.x, mouse.y);
+            context.stroke();
+          }
+        }, false);
+
+        canvasDraw.addEventListener('mouseup', (e) => {
+          mouse.x = e.offsetX;
+          mouse.y = e.offsetY;
+          context.lineTo(mouse.x, mouse.y);
+          context.stroke();
+          context.closePath();
+          draw = false;
+        }, false);
+      },
+      mouseDown(e) {
+        // this.xStart = e.offsetX;
+        // this.yStart = e.offsetY;
+        // this.draw = true;
+      },
+      // mouseUp() {
+      //
+      // },
       getTranslation() {
         this.translationInfo = this.imgURL + this.file.name;
         axios.get(this.translationInfo)
@@ -130,5 +188,24 @@
 <style>
   #preview {
     /*margin-top: -40px;*/
+  }
+  #drawingImage {
+    position: relative;
+    width: 1280px;
+    height: 720px;
+  }
+  #canvas1 {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width:100%;
+    height:100%;
+  }
+  #canvas2 {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width:100%;
+    height:100%;
   }
 </style>
