@@ -51,14 +51,7 @@
         file: null,
         videoPreview: null,
         translationInfo: null,
-
         mouse: { x:0, y:0 },
-        // draw: false,
-        // xStart: null,
-        // yStart: null,
-        // xEnd: null,
-        // yEnd: null,
-
         imgURL: 'http://localhost:8000/main/live_video/'
       }
     },
@@ -85,9 +78,7 @@
 
         video.addEventListener('play', this.timerCallback, false);
 
-        // TODO: drawCanvas
         this.drawOnCanvas();
-
       }
     },
     methods: {
@@ -118,6 +109,7 @@
             mouse.x = e.offsetX;
             mouse.y = e.offsetY;
             draw = true;
+            context.strokeStyle = 'rgb(0, 255, 0)';
             context.beginPath();
             context.moveTo(mouse.x, mouse.y);
           }, false);
@@ -140,14 +132,6 @@
           draw = false;
         }, false);
       },
-      mouseDown(e) {
-        // this.xStart = e.offsetX;
-        // this.yStart = e.offsetY;
-        // this.draw = true;
-      },
-      // mouseUp() {
-      //
-      // },
       getTranslation() {
         this.translationInfo = this.imgURL + this.file.name;
         axios.get(this.translationInfo)
