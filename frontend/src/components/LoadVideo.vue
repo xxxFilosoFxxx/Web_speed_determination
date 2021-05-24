@@ -79,6 +79,7 @@
         video.addEventListener('play', this.timerCallback, false);
 
         this.drawOnCanvas();
+
       }
     },
     methods: {
@@ -97,6 +98,7 @@
           setTimeout(this.timerCallback,0);
       },
       drawOnCanvas() {
+        let countPixel = 0;
         let mouse = { x:0, y:0};
         this.mouse = mouse;
         let draw = false;
@@ -106,31 +108,38 @@
         canvasDraw.height = this.videoPreview.height;
 
         canvasDraw.addEventListener('mousedown', (e) => {
+            countPixel += 1;
+            if (countPixel > 4) { return; }
             mouse.x = e.offsetX;
             mouse.y = e.offsetY;
             draw = true;
             context.strokeStyle = 'rgb(0, 255, 0)';
+            context.fillStyle = 'rgb(0, 255, 0)';
             context.beginPath();
-            context.moveTo(mouse.x, mouse.y);
+            // context.moveTo(mouse.x, mouse.y);
+            // context.stroke();
+            context.arc(mouse.x, mouse.y, 4, 0, 2 * Math.PI, true)
+            context.fill();
+            context.closePath();
           }, false);
 
-        canvasDraw.addEventListener('mousemove', (e) => {
-          if (draw) {
-            mouse.x = e.offsetX;
-            mouse.y = e.offsetY;
-            context.lineTo(mouse.x, mouse.y);
-            context.stroke();
-          }
-        }, false);
-
-        canvasDraw.addEventListener('mouseup', (e) => {
-          mouse.x = e.offsetX;
-          mouse.y = e.offsetY;
-          context.lineTo(mouse.x, mouse.y);
-          context.stroke();
-          context.closePath();
-          draw = false;
-        }, false);
+        // canvasDraw.addEventListener('mousemove', (e) => {
+        //   if (draw) {
+        //     mouse.x = e.offsetX;
+        //     mouse.y = e.offsetY;
+        //     context.lineTo(mouse.x, mouse.y);
+        //     context.stroke();
+        //   }
+        // }, false);
+        //
+        // canvasDraw.addEventListener('mouseup', (e) => {
+        //   mouse.x = e.offsetX;
+        //   mouse.y = e.offsetY;
+        //   context.lineTo(mouse.x, mouse.y);
+        //   context.stroke();
+        //   context.closePath();
+        //   draw = false;
+        // }, false);
       },
       getTranslation() {
         this.translationInfo = this.imgURL + this.file.name;
