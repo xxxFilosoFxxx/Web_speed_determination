@@ -42,7 +42,8 @@
 
 <script>
   /* eslint-disable */
-  import axios from 'axios'
+  import axios from 'axios';
+  import ProjectionCalculator2d from 'projection-3d-2d';
 
   export default {
     name: 'LoadVideo',
@@ -79,7 +80,6 @@
         video.addEventListener('play', this.timerCallback, false);
 
         this.drawOnCanvas();
-
       }
     },
     methods: {
@@ -99,7 +99,9 @@
       },
       drawOnCanvas() {
         let countPixel = 0;
+        let pixels = [];
         let mouse = { x:0, y:0};
+
         this.mouse = mouse;
         let draw = false;
         let canvasDraw = document.getElementById('canvas2');
@@ -107,21 +109,70 @@
         canvasDraw.width = this.videoPreview.width;
         canvasDraw.height = this.videoPreview.height;
 
+        //TODO: add Matrix
         canvasDraw.addEventListener('mousedown', (e) => {
-            countPixel += 1;
-            if (countPixel > 4) { return; }
-            mouse.x = e.offsetX;
-            mouse.y = e.offsetY;
-            draw = true;
-            context.strokeStyle = 'rgb(0, 255, 0)';
-            context.fillStyle = 'rgb(0, 255, 0)';
-            context.beginPath();
-            // context.moveTo(mouse.x, mouse.y);
+          countPixel += 1;
+          if (countPixel > 4) {
+            let xMax = canvasDraw.width;
+            let yMax = canvasDraw.height;
+            context.lineWidth = 3;
+
+            // let alfa = (pixels[0][1] - pixels[1][1]) / (pixels[0][0] - pixels[1][0]);
+            // let b1 = pixels[0][1] - alfa*pixels[0][0];
+            // context.beginPath();
+            // context.moveTo(0, b1);
+            // context.lineTo(pixels[0][0], pixels[0][1] );
+            // context.lineTo(pixels[1][0], pixels[1][1] );
+            // context.lineTo(1280, alfa*1280+b1);
             // context.stroke();
-            context.arc(mouse.x, mouse.y, 4, 0, 2 * Math.PI, true)
-            context.fill();
+            // context.closePath();
+            let mX = 0;
+            let mY = 0;
+            for (let i = 0; i < pixels.length; i++) {
+              mX += pixels[i][0];
+              mY += pixels[i][1];
+            }
+            mX = mX / pixels.length;
+            mY = mY / pixels.length;
+
+            for (let i = 0; i < pixels.length - 1; i++) {
+              let alfa = (pixels[i][1] - pixels[i+1][1]) / (pixels[i][0] - pixels[i+1][0]);
+              let b = pixels[i][1] - alfa*pixels[i][0];
+              context.beginPath();
+              context.moveTo(0, b);
+              context.lineTo(pixels[i][0], pixels[i][1] );
+              context.lineTo(pixels[i+1][0], pixels[i+1][1] );
+              context.lineTo(xMax, alfa*xMax+b);
+              context.stroke();
+              context.closePath();
+            }
+
+            let alfa = (pixels[3][1] - pixels[0][1]) / (pixels[3][0] - pixels[0][0]);
+            let b = pixels[3][1] - alfa*pixels[3][0];
+            context.beginPath();
+            context.moveTo(0, b);
+            context.lineTo(pixels[3][0], pixels[3][1] );
+            context.lineTo(pixels[0][0], pixels[0][1] );
+            context.lineTo(xMax, alfa*xMax+b);
+            context.stroke();
             context.closePath();
-          }, false);
+
+            return;
+          }
+
+          mouse.x = e.offsetX;
+          mouse.y = e.offsetY;
+          pixels.push([mouse.x, mouse.y]);
+          draw = true;
+          context.strokeStyle = 'rgb(0, 255, 0)';
+          context.fillStyle = 'rgb(0, 255, 0)';
+          context.beginPath();
+          // context.moveTo(mouse.x, mouse.y);
+          // context.stroke();
+          context.arc(mouse.x, mouse.y, 4, 0, 2 * Math.PI, true)
+          context.fill();
+          context.closePath();
+        }, false);
 
         // canvasDraw.addEventListener('mousemove', (e) => {
         //   if (draw) {
