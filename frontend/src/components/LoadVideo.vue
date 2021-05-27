@@ -114,27 +114,27 @@
           countPixel += 1;
           if (countPixel > 4) {
             let xMax = canvasDraw.width;
-            let yMax = canvasDraw.height;
             context.lineWidth = 3;
-
-            // let alfa = (pixels[0][1] - pixels[1][1]) / (pixels[0][0] - pixels[1][0]);
-            // let b1 = pixels[0][1] - alfa*pixels[0][0];
-            // context.beginPath();
-            // context.moveTo(0, b1);
-            // context.lineTo(pixels[0][0], pixels[0][1] );
-            // context.lineTo(pixels[1][0], pixels[1][1] );
-            // context.lineTo(1280, alfa*1280+b1);
-            // context.stroke();
-            // context.closePath();
-            let mX = 0;
-            let mY = 0;
+            // Середина многоугольника
+            let centerX = 0;
+            let centerY = 0;
             for (let i = 0; i < pixels.length; i++) {
-              mX += pixels[i][0];
-              mY += pixels[i][1];
+              centerX += pixels[i][0];
+              centerY += pixels[i][1];
             }
-            mX = mX / pixels.length;
-            mY = mY / pixels.length;
+            centerX = centerX / pixels.length;
+            centerY = centerY / pixels.length;
+            // Углы относительно центральной точки многоугольника
+            for (let i = 0; i < pixels.length; i++) {
+              let dx = pixels[i][0] - centerX;
+              let dy = pixels[i][1] - centerY;
+              pixels[i][2] = Math.atan2(dy, dx);
+            }
+            pixels.sort(function (a, b) {
+              return (a[2] >= b[2]) ? 1 : -1;
+            });
 
+            // Соединяем точки
             for (let i = 0; i < pixels.length - 1; i++) {
               let alfa = (pixels[i][1] - pixels[i+1][1]) / (pixels[i][0] - pixels[i+1][0]);
               let b = pixels[i][1] - alfa*pixels[i][0];
@@ -156,13 +156,13 @@
             context.lineTo(xMax, alfa*xMax+b);
             context.stroke();
             context.closePath();
-
             return;
           }
 
+          // Рисуем опорные точки
           mouse.x = e.offsetX;
           mouse.y = e.offsetY;
-          pixels.push([mouse.x, mouse.y]);
+          pixels.push([mouse.x, mouse.y, 0]);
           draw = true;
           context.strokeStyle = 'rgb(0, 255, 0)';
           context.fillStyle = 'rgb(0, 255, 0)';
