@@ -29,6 +29,7 @@
 
 
         <b-button @click="submitFile()">Отправить</b-button>
+        <b-button id="clearCanvas" v-show="file" @click="clearCanvas()">Очистить поле</b-button>
       </b-form-group>
     </b-container>
 
@@ -52,7 +53,7 @@
         file: null,
         videoPreview: null,
         translationInfo: null,
-        mouse: { x:0, y:0 },
+        mouse: [],
         imgURL: 'http://localhost:8000/main/live_video/'
       }
     },
@@ -100,16 +101,15 @@
       drawOnCanvas() {
         let countPixel = 0;
         let pixels = [];
+        let pixelsForMatrix = [];
         let mouse = { x:0, y:0};
-
-        this.mouse = mouse;
         let draw = false;
+        this.mouse = pixelsForMatrix;
         let canvasDraw = document.getElementById('canvas2');
         let context = canvasDraw.getContext("2d");
         canvasDraw.width = this.videoPreview.width;
         canvasDraw.height = this.videoPreview.height;
 
-        //TODO: add Matrix
         canvasDraw.addEventListener('mousedown', (e) => {
           countPixel += 1;
           if (countPixel > 4) {
@@ -146,7 +146,6 @@
               context.stroke();
               context.closePath();
             }
-
             let alfa = (pixels[3][1] - pixels[0][1]) / (pixels[3][0] - pixels[0][0]);
             let b = pixels[3][1] - alfa*pixels[3][0];
             context.beginPath();
@@ -158,11 +157,11 @@
             context.closePath();
             return;
           }
-
           // Рисуем опорные точки
           mouse.x = e.offsetX;
           mouse.y = e.offsetY;
           pixels.push([mouse.x, mouse.y, 0]);
+          pixelsForMatrix.push([mouse.x, mouse.y]);
           draw = true;
           context.strokeStyle = 'rgb(0, 255, 0)';
           context.fillStyle = 'rgb(0, 255, 0)';
@@ -172,6 +171,14 @@
           context.arc(mouse.x, mouse.y, 4, 0, 2 * Math.PI, true)
           context.fill();
           context.closePath();
+
+          document.getElementById('clearCanvas').onclick = function() {
+           countPixel = 0;
+           pixels = [];
+           pixelsForMatrix = [];
+           draw = false;
+          }
+
         }, false);
 
         // canvasDraw.addEventListener('mousemove', (e) => {
@@ -191,6 +198,11 @@
         //   context.closePath();
         //   draw = false;
         // }, false);
+      },
+      clearCanvas() {
+        let canvasDraw = document.getElementById('canvas2');
+        let context = canvasDraw.getContext("2d");
+        context.clearRect(0, 0, canvasDraw.width, canvasDraw.height);
       },
       getTranslation() {
         this.translationInfo = this.imgURL + this.file.name;
