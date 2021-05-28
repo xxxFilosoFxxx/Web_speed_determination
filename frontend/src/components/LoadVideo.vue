@@ -27,7 +27,6 @@
           </b-row>
         </b-container>
 
-
         <b-button @click="submitFile()">Отправить</b-button>
         <b-button id="clearCanvas" v-show="file" @click="clearCanvas()">Очистить поле</b-button>
       </b-form-group>
@@ -53,7 +52,8 @@
         file: null,
         videoPreview: null,
         translationInfo: null,
-        mouse: [],
+        pixels: [],
+        lines: [],
         imgURL: 'http://localhost:8000/main/live_video/'
       }
     },
@@ -80,7 +80,10 @@
 
         video.addEventListener('play', this.timerCallback, false);
 
-        this.drawOnCanvas();
+        // if (this.drawPixels()) {
+        //   this.drawLines();
+        // }
+        this.drawLines();
       }
     },
     methods: {
@@ -98,23 +101,24 @@
           this.computeFrame();
           setTimeout(this.timerCallback,0);
       },
-      drawOnCanvas() {
+      drawPixels() {
         let countPixel = 0;
         let pixels = [];
         let pixelsForMatrix = [];
         let mouse = { x:0, y:0};
-        let draw = false;
-        this.mouse = pixelsForMatrix;
+        this.pixels = pixelsForMatrix;
         let canvasDraw = document.getElementById('canvas2');
         let context = canvasDraw.getContext("2d");
         canvasDraw.width = this.videoPreview.width;
         canvasDraw.height = this.videoPreview.height;
+        context.lineWidth = 3;
+        context.strokeStyle = 'rgb(0, 255, 0)';
+        context.fillStyle = 'rgb(0, 255, 0)';
 
         canvasDraw.addEventListener('mousedown', (e) => {
           countPixel += 1;
           if (countPixel > 4) {
             let xMax = canvasDraw.width;
-            context.lineWidth = 3;
             // Середина многоугольника
             let centerX = 0;
             let centerY = 0;
@@ -155,19 +159,14 @@
             context.lineTo(xMax, alfa*xMax+b);
             context.stroke();
             context.closePath();
-            return;
+            return true;
           }
           // Рисуем опорные точки
           mouse.x = e.offsetX;
           mouse.y = e.offsetY;
           pixels.push([mouse.x, mouse.y, 0]);
           pixelsForMatrix.push([mouse.x, mouse.y]);
-          draw = true;
-          context.strokeStyle = 'rgb(0, 255, 0)';
-          context.fillStyle = 'rgb(0, 255, 0)';
           context.beginPath();
-          // context.moveTo(mouse.x, mouse.y);
-          // context.stroke();
           context.arc(mouse.x, mouse.y, 4, 0, 2 * Math.PI, true)
           context.fill();
           context.closePath();
@@ -176,28 +175,53 @@
            countPixel = 0;
            pixels = [];
            pixelsForMatrix = [];
-           draw = false;
           }
-
         }, false);
+      },
+      drawLines() {
+        let pixelsForLines = [];
+        let mouse = { x:0, y:0};
+        let mouseTo = { x:0, y:0 };
+        let draw = false;
+        this.lines = pixelsForLines;
+        let canvasDraw = document.getElementById('canvas2');
+        let context = canvasDraw.getContext("2d");
+        canvasDraw.width = this.videoPreview.width;
+        canvasDraw.height = this.videoPreview.height;
+        context.lineWidth = 3;
+        context.strokeStyle = 'rgb(255, 0, 0)';
+        context.fillStyle = 'rgb(255, 0, 0)';
 
-        // canvasDraw.addEventListener('mousemove', (e) => {
-        //   if (draw) {
-        //     mouse.x = e.offsetX;
-        //     mouse.y = e.offsetY;
-        //     context.lineTo(mouse.x, mouse.y);
-        //     context.stroke();
-        //   }
-        // }, false);
-        //
-        // canvasDraw.addEventListener('mouseup', (e) => {
-        //   mouse.x = e.offsetX;
-        //   mouse.y = e.offsetY;
-        //   context.lineTo(mouse.x, mouse.y);
-        //   context.stroke();
-        //   context.closePath();
-        //   draw = false;
-        // }, false);
+        canvasDraw.addEventListener('mousedown', (e) => {
+          mouse.x = e.offsetX;
+          mouse.y = e.offsetY;
+          pixelsForLines.push([mouse.x, mouse.y]);
+          context.beginPath();
+          context.arc(mouse.x, mouse.y, 4, 0, 2 * Math.PI, true)
+          context.fill();
+          context.moveTo(mouse.x, mouse.y);
+          draw = true;
+
+          document.getElementById('clearCanvas').onclick = function() {
+           draw = false;
+           pixelsForLines = [];
+          }
+        }, false);
+        canvasDraw.addEventListener('mousemove', (e) => {
+        if (draw) {
+            mouseTo.x = e.offsetX;
+            mouseTo.y = e.offsetY;
+          }
+        }, false);
+        canvasDraw.addEventListener('mouseup', (e) => {
+          pixelsForLines.push([mouseTo.x, mouseTo.y]);
+          context.arc(mouseTo.x, mouseTo.y, 4, 0, 2 * Math.PI, true)
+          context.fill();
+          context.lineTo(mouseTo.x, mouseTo.y);
+          context.stroke();
+          context.closePath();
+          draw = false;
+        }, false);
       },
       clearCanvas() {
         let canvasDraw = document.getElementById('canvas2');
