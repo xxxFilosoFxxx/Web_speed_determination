@@ -185,72 +185,6 @@
         context.fillStyle = 'rgb(0, 255, 0)';
 
         canvasDraw.addEventListener('mousedown', this.drawPixel, false);
-
-        // canvasDraw.addEventListener('mousedown', (e) => {
-        //   countPixel += 1;
-        //
-        //   // Рисуем опорные точки
-        //   mouse.x = e.offsetX;
-        //   mouse.y = e.offsetY;
-        //   pixels.push([mouse.x, mouse.y, 0]);
-        //   pixelsForMatrix.push([mouse.x, mouse.y]);
-        //   context.beginPath();
-        //   context.arc(mouse.x, mouse.y, 4, 0, 2 * Math.PI, true)
-        //   context.fill();
-        //   context.closePath();
-        //
-        //   if (countPixel >= 4) {
-        //     let xMax = canvasDraw.width;
-        //     // Середина многоугольника
-        //     let centerX = 0;
-        //     let centerY = 0;
-        //     for (let i = 0; i < pixels.length; i++) {
-        //       centerX += pixels[i][0];
-        //       centerY += pixels[i][1];
-        //     }
-        //     centerX = centerX / pixels.length;
-        //     centerY = centerY / pixels.length;
-        //     // Углы относительно центральной точки многоугольника
-        //     for (let i = 0; i < pixels.length; i++) {
-        //       let dx = pixels[i][0] - centerX;
-        //       let dy = pixels[i][1] - centerY;
-        //       pixels[i][2] = Math.atan2(dy, dx);
-        //     }
-        //     pixels.sort(function (a, b) {
-        //       return (a[2] >= b[2]) ? 1 : -1;
-        //     });
-        //
-        //     // Соединяем точки
-        //     for (let i = 0; i < pixels.length - 1; i++) {
-        //       let alfa = (pixels[i][1] - pixels[i+1][1]) / (pixels[i][0] - pixels[i+1][0]);
-        //       let b = pixels[i][1] - alfa*pixels[i][0];
-        //       context.beginPath();
-        //       context.moveTo(0, b);
-        //       context.lineTo(pixels[i][0], pixels[i][1] );
-        //       context.lineTo(pixels[i+1][0], pixels[i+1][1] );
-        //       context.lineTo(xMax, alfa*xMax+b);
-        //       context.stroke();
-        //       context.closePath();
-        //     }
-        //     let alfa = (pixels[3][1] - pixels[0][1]) / (pixels[3][0] - pixels[0][0]);
-        //     let b = pixels[3][1] - alfa*pixels[3][0];
-        //     context.beginPath();
-        //     context.moveTo(0, b);
-        //     context.lineTo(pixels[3][0], pixels[3][1] );
-        //     context.lineTo(pixels[0][0], pixels[0][1] );
-        //     context.lineTo(xMax, alfa*xMax+b);
-        //     context.stroke();
-        //     context.closePath();
-        //     // this.drawLines();
-        //     return false;
-        //   }
-        //
-        //   document.getElementById('clearCanvas').onclick = function() {
-        //    countPixel = 0;
-        //    pixels = [];
-        //    pixelsForMatrix = [];
-        //   }
-        // }, false);
       },
       drawLineDown(e) {
         let canvasDraw = document.getElementById('canvas3');
@@ -297,40 +231,6 @@
         canvasDraw.addEventListener('mousedown', this.drawLineDown, false);
         canvasDraw.addEventListener('mousemove', this.drawLineMove, false);
         canvasDraw.addEventListener('mouseup', this.drawLineUp, false);
-        // canvasDraw.addEventListener('mousedown', (e) => {
-        //   // countLine += 1;
-        //   mouse.x = e.offsetX;
-        //   mouse.y = e.offsetY;
-        //   this.lines.push([mouse.x, mouse.y]);
-        //   context.beginPath();
-        //   context.arc(mouse.x, mouse.y, 4, 0, 2 * Math.PI, true)
-        //   context.fill();
-        //   context.moveTo(mouse.x, mouse.y);
-        //   draw = true;
-        //
-        //   document.getElementById('clearCanvas').onclick = function() {
-        //    draw = false;
-        //    pixelsForLines = [];
-        //   }
-        // }, false);
-        // canvasDraw.addEventListener('mousemove', (e) => {
-        // if (draw) {
-        //     mouseTo.x = e.offsetX;
-        //     mouseTo.y = e.offsetY;
-        //   }
-        // }, false);
-        // canvasDraw.addEventListener('mouseup', (e) => {
-        //   // if (countLine >= 2) {
-        //   //   return;
-        //   // }
-        //   pixelsForLines.push([mouseTo.x, mouseTo.y]);
-        //   context.arc(mouseTo.x, mouseTo.y, 4, 0, 2 * Math.PI, true)
-        //   context.fill();
-        //   context.lineTo(mouseTo.x, mouseTo.y);
-        //   context.stroke();
-        //   context.closePath();
-        //   draw = false;
-        // }, false);
       },
       clearCanvas() {
         let canvasDraw1 = document.getElementById('canvas2');
