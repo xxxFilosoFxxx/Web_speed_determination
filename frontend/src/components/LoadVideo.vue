@@ -22,6 +22,7 @@
               <div id="drawingImage">
                 <canvas id="canvas1"></canvas>
                 <canvas id="canvas2"></canvas>
+                <canvas id="canvas3" style="display: none;"></canvas>
               </div>
             </b-col>
           </b-row>
@@ -52,7 +53,12 @@
         file: null,
         videoPreview: null,
         translationInfo: null,
+        mouse: { x:0, y:0 },
+        mouseTo: { x:0, y:0 },
+        draw: false,
+        countPixel: 0,
         pixels: [],
+        pixelsForDraw: [],
         lines: [],
         imgURL: 'http://localhost:8000/main/live_video/'
       }
@@ -80,10 +86,9 @@
 
         video.addEventListener('play', this.timerCallback, false);
 
-        // if (this.drawPixels()) {
-        //   this.drawLines();
-        // }
-        this.drawLines();
+        this.drawPixels();
+
+        // TODO: обработать матрицу точек и линий
       }
     },
     methods: {
@@ -98,15 +103,79 @@
       },
       timerCallback() {
         if (this.videoPreview.paused || this.videoPreview.ended) { return; }
-          this.computeFrame();
-          setTimeout(this.timerCallback,0);
+        this.computeFrame();
+        setTimeout(this.timerCallback,0);
+      },
+      RemoveDraw() {
+        let canvasDraw = document.getElementById('canvas2');
+        if (this.countPixel >= 4) {
+          canvasDraw.removeEventListener('mousedown', this.drawPixel, false);
+          this.drawLines();
+        }
+      },
+      drawPixel(e) {
+        let canvasDraw = document.getElementById('canvas2');
+        let context = canvasDraw.getContext("2d");
+        this.countPixel += 1;
+        // Рисуем опорные точки
+        this.mouse.x = e.offsetX;
+        this.mouse.y = e.offsetY;
+        this.pixels.push([this.mouse.x, this.mouse.y]);
+
+        this.pixelsForDraw.push([this.mouse.x, this.mouse.y, 0]);
+        context.beginPath();
+        context.arc(this.mouse.x, this.mouse.y, 4, 0, 2 * Math.PI, true)
+        context.fill();
+        context.closePath();
+
+        if (this.countPixel >= 4) {
+          let xMax = canvasDraw.width;
+          // Середина многоугольника
+          let centerX = 0;
+          let centerY = 0;
+          for (let i = 0; i < this.pixelsForDraw.length; i++) {
+            centerX += this.pixelsForDraw[i][0];
+            centerY += this.pixelsForDraw[i][1];
+          }
+          centerX = centerX / this.pixelsForDraw.length;
+          centerY = centerY / this.pixelsForDraw.length;
+          // Углы относительно центральной точки многоугольника
+          for (let i = 0; i < this.pixelsForDraw.length; i++) {
+            let dx = this.pixelsForDraw[i][0] - centerX;
+            let dy = this.pixelsForDraw[i][1] - centerY;
+            this.pixelsForDraw[i][2] = Math.atan2(dy, dx);
+          }
+          this.pixelsForDraw.sort(function (a, b) {
+            return (a[2] >= b[2]) ? 1 : -1;
+          });
+
+          // Соединяем точки
+          for (let i = 0; i < this.pixelsForDraw.length - 1; i++) {
+            let alfa = (this.pixelsForDraw[i][1] - this.pixelsForDraw[i+1][1]) /
+                       (this.pixelsForDraw[i][0] - this.pixelsForDraw[i+1][0]);
+            let b = this.pixelsForDraw[i][1] - alfa*this.pixelsForDraw[i][0];
+            context.beginPath();
+            context.moveTo(0, b);
+            context.lineTo(this.pixelsForDraw[i][0], this.pixelsForDraw[i][1] );
+            context.lineTo(this.pixelsForDraw[i+1][0], this.pixelsForDraw[i+1][1] );
+            context.lineTo(xMax, alfa*xMax+b);
+            context.stroke();
+            context.closePath();
+          }
+          let alfa = (this.pixelsForDraw[3][1] - this.pixelsForDraw[0][1]) /
+                     (this.pixelsForDraw[3][0] - this.pixelsForDraw[0][0]);
+          let b = this.pixelsForDraw[3][1] - alfa*this.pixelsForDraw[3][0];
+          context.beginPath();
+          context.moveTo(0, b);
+          context.lineTo(this.pixelsForDraw[3][0], this.pixelsForDraw[3][1] );
+          context.lineTo(this.pixelsForDraw[0][0], this.pixelsForDraw[0][1] );
+          context.lineTo(xMax, alfa*xMax+b);
+          context.stroke();
+          context.closePath();
+          this.RemoveDraw();
+        }
       },
       drawPixels() {
-        let countPixel = 0;
-        let pixels = [];
-        let pixelsForMatrix = [];
-        let mouse = { x:0, y:0};
-        this.pixels = pixelsForMatrix;
         let canvasDraw = document.getElementById('canvas2');
         let context = canvasDraw.getContext("2d");
         canvasDraw.width = this.videoPreview.width;
@@ -115,76 +184,108 @@
         context.strokeStyle = 'rgb(0, 255, 0)';
         context.fillStyle = 'rgb(0, 255, 0)';
 
-        canvasDraw.addEventListener('mousedown', (e) => {
-          countPixel += 1;
-          if (countPixel > 4) {
-            let xMax = canvasDraw.width;
-            // Середина многоугольника
-            let centerX = 0;
-            let centerY = 0;
-            for (let i = 0; i < pixels.length; i++) {
-              centerX += pixels[i][0];
-              centerY += pixels[i][1];
-            }
-            centerX = centerX / pixels.length;
-            centerY = centerY / pixels.length;
-            // Углы относительно центральной точки многоугольника
-            for (let i = 0; i < pixels.length; i++) {
-              let dx = pixels[i][0] - centerX;
-              let dy = pixels[i][1] - centerY;
-              pixels[i][2] = Math.atan2(dy, dx);
-            }
-            pixels.sort(function (a, b) {
-              return (a[2] >= b[2]) ? 1 : -1;
-            });
+        canvasDraw.addEventListener('mousedown', this.drawPixel, false);
 
-            // Соединяем точки
-            for (let i = 0; i < pixels.length - 1; i++) {
-              let alfa = (pixels[i][1] - pixels[i+1][1]) / (pixels[i][0] - pixels[i+1][0]);
-              let b = pixels[i][1] - alfa*pixels[i][0];
-              context.beginPath();
-              context.moveTo(0, b);
-              context.lineTo(pixels[i][0], pixels[i][1] );
-              context.lineTo(pixels[i+1][0], pixels[i+1][1] );
-              context.lineTo(xMax, alfa*xMax+b);
-              context.stroke();
-              context.closePath();
-            }
-            let alfa = (pixels[3][1] - pixels[0][1]) / (pixels[3][0] - pixels[0][0]);
-            let b = pixels[3][1] - alfa*pixels[3][0];
-            context.beginPath();
-            context.moveTo(0, b);
-            context.lineTo(pixels[3][0], pixels[3][1] );
-            context.lineTo(pixels[0][0], pixels[0][1] );
-            context.lineTo(xMax, alfa*xMax+b);
-            context.stroke();
-            context.closePath();
-            return true;
-          }
-          // Рисуем опорные точки
-          mouse.x = e.offsetX;
-          mouse.y = e.offsetY;
-          pixels.push([mouse.x, mouse.y, 0]);
-          pixelsForMatrix.push([mouse.x, mouse.y]);
-          context.beginPath();
-          context.arc(mouse.x, mouse.y, 4, 0, 2 * Math.PI, true)
+        // canvasDraw.addEventListener('mousedown', (e) => {
+        //   countPixel += 1;
+        //
+        //   // Рисуем опорные точки
+        //   mouse.x = e.offsetX;
+        //   mouse.y = e.offsetY;
+        //   pixels.push([mouse.x, mouse.y, 0]);
+        //   pixelsForMatrix.push([mouse.x, mouse.y]);
+        //   context.beginPath();
+        //   context.arc(mouse.x, mouse.y, 4, 0, 2 * Math.PI, true)
+        //   context.fill();
+        //   context.closePath();
+        //
+        //   if (countPixel >= 4) {
+        //     let xMax = canvasDraw.width;
+        //     // Середина многоугольника
+        //     let centerX = 0;
+        //     let centerY = 0;
+        //     for (let i = 0; i < pixels.length; i++) {
+        //       centerX += pixels[i][0];
+        //       centerY += pixels[i][1];
+        //     }
+        //     centerX = centerX / pixels.length;
+        //     centerY = centerY / pixels.length;
+        //     // Углы относительно центральной точки многоугольника
+        //     for (let i = 0; i < pixels.length; i++) {
+        //       let dx = pixels[i][0] - centerX;
+        //       let dy = pixels[i][1] - centerY;
+        //       pixels[i][2] = Math.atan2(dy, dx);
+        //     }
+        //     pixels.sort(function (a, b) {
+        //       return (a[2] >= b[2]) ? 1 : -1;
+        //     });
+        //
+        //     // Соединяем точки
+        //     for (let i = 0; i < pixels.length - 1; i++) {
+        //       let alfa = (pixels[i][1] - pixels[i+1][1]) / (pixels[i][0] - pixels[i+1][0]);
+        //       let b = pixels[i][1] - alfa*pixels[i][0];
+        //       context.beginPath();
+        //       context.moveTo(0, b);
+        //       context.lineTo(pixels[i][0], pixels[i][1] );
+        //       context.lineTo(pixels[i+1][0], pixels[i+1][1] );
+        //       context.lineTo(xMax, alfa*xMax+b);
+        //       context.stroke();
+        //       context.closePath();
+        //     }
+        //     let alfa = (pixels[3][1] - pixels[0][1]) / (pixels[3][0] - pixels[0][0]);
+        //     let b = pixels[3][1] - alfa*pixels[3][0];
+        //     context.beginPath();
+        //     context.moveTo(0, b);
+        //     context.lineTo(pixels[3][0], pixels[3][1] );
+        //     context.lineTo(pixels[0][0], pixels[0][1] );
+        //     context.lineTo(xMax, alfa*xMax+b);
+        //     context.stroke();
+        //     context.closePath();
+        //     // this.drawLines();
+        //     return false;
+        //   }
+        //
+        //   document.getElementById('clearCanvas').onclick = function() {
+        //    countPixel = 0;
+        //    pixels = [];
+        //    pixelsForMatrix = [];
+        //   }
+        // }, false);
+      },
+      drawLineDown(e) {
+        let canvasDraw = document.getElementById('canvas3');
+        let context = canvasDraw.getContext("2d");
+        // countLine += 1;
+        this.mouse.x = e.offsetX;
+        this.mouse.y = e.offsetY;
+        this.lines.push([this.mouse.x, this.mouse.y]);
+        context.beginPath();
+        context.arc(this.mouse.x, this.mouse.y, 4, 0, 2 * Math.PI, true)
+        context.fill();
+        context.moveTo(this.mouse.x, this.mouse.y);
+        this.draw = true;
+      },
+      drawLineMove(e) {
+        if (this.draw) {
+          this.mouseTo.x = e.offsetX;
+          this.mouseTo.y = e.offsetY;
+        }
+      },
+      drawLineUp(e) {
+        if (this.draw) {
+          let canvasDraw = document.getElementById('canvas3');
+          let context = canvasDraw.getContext("2d");
+          this.lines.push([this.mouseTo.x, this.mouseTo.y]);
+          context.arc(this.mouseTo.x, this.mouseTo.y, 4, 0, 2 * Math.PI, true)
           context.fill();
+          context.lineTo(this.mouseTo.x, this.mouseTo.y);
+          context.stroke();
           context.closePath();
-
-          document.getElementById('clearCanvas').onclick = function() {
-           countPixel = 0;
-           pixels = [];
-           pixelsForMatrix = [];
-          }
-        }, false);
+          this.draw = false;
+        }
       },
       drawLines() {
-        let pixelsForLines = [];
-        let mouse = { x:0, y:0};
-        let mouseTo = { x:0, y:0 };
-        let draw = false;
-        this.lines = pixelsForLines;
-        let canvasDraw = document.getElementById('canvas2');
+        let canvasDraw = document.getElementById('canvas3');
         let context = canvasDraw.getContext("2d");
         canvasDraw.width = this.videoPreview.width;
         canvasDraw.height = this.videoPreview.height;
@@ -192,41 +293,64 @@
         context.strokeStyle = 'rgb(255, 0, 0)';
         context.fillStyle = 'rgb(255, 0, 0)';
 
-        canvasDraw.addEventListener('mousedown', (e) => {
-          mouse.x = e.offsetX;
-          mouse.y = e.offsetY;
-          pixelsForLines.push([mouse.x, mouse.y]);
-          context.beginPath();
-          context.arc(mouse.x, mouse.y, 4, 0, 2 * Math.PI, true)
-          context.fill();
-          context.moveTo(mouse.x, mouse.y);
-          draw = true;
-
-          document.getElementById('clearCanvas').onclick = function() {
-           draw = false;
-           pixelsForLines = [];
-          }
-        }, false);
-        canvasDraw.addEventListener('mousemove', (e) => {
-        if (draw) {
-            mouseTo.x = e.offsetX;
-            mouseTo.y = e.offsetY;
-          }
-        }, false);
-        canvasDraw.addEventListener('mouseup', (e) => {
-          pixelsForLines.push([mouseTo.x, mouseTo.y]);
-          context.arc(mouseTo.x, mouseTo.y, 4, 0, 2 * Math.PI, true)
-          context.fill();
-          context.lineTo(mouseTo.x, mouseTo.y);
-          context.stroke();
-          context.closePath();
-          draw = false;
-        }, false);
+        canvasDraw.style.display = 'block';
+        canvasDraw.addEventListener('mousedown', this.drawLineDown, false);
+        canvasDraw.addEventListener('mousemove', this.drawLineMove, false);
+        canvasDraw.addEventListener('mouseup', this.drawLineUp, false);
+        // canvasDraw.addEventListener('mousedown', (e) => {
+        //   // countLine += 1;
+        //   mouse.x = e.offsetX;
+        //   mouse.y = e.offsetY;
+        //   this.lines.push([mouse.x, mouse.y]);
+        //   context.beginPath();
+        //   context.arc(mouse.x, mouse.y, 4, 0, 2 * Math.PI, true)
+        //   context.fill();
+        //   context.moveTo(mouse.x, mouse.y);
+        //   draw = true;
+        //
+        //   document.getElementById('clearCanvas').onclick = function() {
+        //    draw = false;
+        //    pixelsForLines = [];
+        //   }
+        // }, false);
+        // canvasDraw.addEventListener('mousemove', (e) => {
+        // if (draw) {
+        //     mouseTo.x = e.offsetX;
+        //     mouseTo.y = e.offsetY;
+        //   }
+        // }, false);
+        // canvasDraw.addEventListener('mouseup', (e) => {
+        //   // if (countLine >= 2) {
+        //   //   return;
+        //   // }
+        //   pixelsForLines.push([mouseTo.x, mouseTo.y]);
+        //   context.arc(mouseTo.x, mouseTo.y, 4, 0, 2 * Math.PI, true)
+        //   context.fill();
+        //   context.lineTo(mouseTo.x, mouseTo.y);
+        //   context.stroke();
+        //   context.closePath();
+        //   draw = false;
+        // }, false);
       },
       clearCanvas() {
-        let canvasDraw = document.getElementById('canvas2');
-        let context = canvasDraw.getContext("2d");
-        context.clearRect(0, 0, canvasDraw.width, canvasDraw.height);
+        let canvasDraw1 = document.getElementById('canvas2');
+        let context1 = canvasDraw1.getContext("2d");
+        context1.clearRect(0, 0, canvasDraw1.width, canvasDraw1.height);
+        this.countPixel = 0;
+        this.pixels = [];
+        this.pixelsForDraw = [];
+        canvasDraw1.removeEventListener('mousedown', this.drawPixel, false);
+        canvasDraw1.addEventListener('mousedown', this.drawPixel, false);
+
+        let canvasDraw2 = document.getElementById('canvas3');
+        let context2 = canvasDraw2.getContext("2d");
+        context2.clearRect(0, 0, canvasDraw2.width, canvasDraw2.height);
+        canvasDraw2.style.display = 'none';
+        this.draw = false;
+        this.lines = [];
+        canvasDraw2.removeEventListener('mousedown', this.drawLineDown, false);
+        canvasDraw2.removeEventListener('mousemove', this.drawLineMove, false);
+        canvasDraw2.removeEventListener('mouseup', this.drawLineUp, false);
       },
       getTranslation() {
         this.translationInfo = this.imgURL + this.file.name;
@@ -282,6 +406,13 @@
     height:100%;
   }
   #canvas2 {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width:100%;
+    height:100%;
+  }
+  #canvas3 {
     position: absolute;
     left: 0;
     top: 0;
