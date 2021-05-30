@@ -57,6 +57,7 @@
         mouseTo: { x:0, y:0 },
         draw: false,
         countPixel: 0,
+        countLine: 0,
         pixels: [],
         pixelsForDraw: [],
         lines: [],
@@ -106,11 +107,19 @@
         this.computeFrame();
         setTimeout(this.timerCallback,0);
       },
-      RemoveDraw() {
+      RemoveDrawPixels() {
         let canvasDraw = document.getElementById('canvas2');
         if (this.countPixel >= 4) {
           canvasDraw.removeEventListener('mousedown', this.drawPixel, false);
           this.drawLines();
+        }
+      },
+      RemoveDrawLines() {
+        let canvasDraw = document.getElementById('canvas3');
+        if (this.countLine >= 2) {
+          canvasDraw.removeEventListener('mousedown', this.drawLineDown, false);
+          canvasDraw.removeEventListener('mousemove', this.drawLineMove, false);
+          canvasDraw.removeEventListener('mouseup', this.drawLineUp, false);
         }
       },
       drawPixel(e) {
@@ -172,7 +181,7 @@
           context.lineTo(xMax, alfa*xMax+b);
           context.stroke();
           context.closePath();
-          this.RemoveDraw();
+          this.RemoveDrawPixels();
         }
       },
       drawPixels() {
@@ -189,7 +198,7 @@
       drawLineDown(e) {
         let canvasDraw = document.getElementById('canvas3');
         let context = canvasDraw.getContext("2d");
-        // countLine += 1;
+        this.countLine += 1;
         this.mouse.x = e.offsetX;
         this.mouse.y = e.offsetY;
         this.lines.push([this.mouse.x, this.mouse.y]);
@@ -216,6 +225,9 @@
           context.stroke();
           context.closePath();
           this.draw = false;
+          if (this.countLine >= 2) {
+            this.RemoveDrawLines();
+          }
         }
       },
       drawLines() {
