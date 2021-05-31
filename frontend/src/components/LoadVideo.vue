@@ -23,6 +23,10 @@
                 <canvas id="canvas1"></canvas>
                 <canvas id="canvas2"></canvas>
                 <canvas id="canvas3" style="display: none;"></canvas>
+
+<!--                <input type="number" step="any" min="0" style="display: block; z-index: 1; position: absolute; left: 100px; top: 100px;">-->
+                <input type="text" style="display: block; position: absolute; left: 200px; top: 200px;">
+
               </div>
             </b-col>
           </b-row>
@@ -225,6 +229,7 @@
           context.stroke();
           context.closePath();
           this.draw = false;
+          // TODO: добавить появление <input> внутри "canvas" с координатами чуть выше/ниже середины нарисованной линии
           if (this.countLine >= 2) {
             this.RemoveDrawLines();
           }
