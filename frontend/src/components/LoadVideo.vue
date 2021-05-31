@@ -258,6 +258,7 @@
         let context2 = canvasDraw2.getContext("2d");
         context2.clearRect(0, 0, canvasDraw2.width, canvasDraw2.height);
         canvasDraw2.style.display = 'none';
+        this.countLine = 0;
         this.draw = false;
         this.lines = [];
         canvasDraw2.removeEventListener('mousedown', this.drawLineDown, false);
