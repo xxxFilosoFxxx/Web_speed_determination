@@ -24,8 +24,8 @@
                 <canvas id="canvas2"></canvas>
                 <canvas id="canvas3" style="display: none;"></canvas>
 
-<!--                <input type="number" step="any" min="0" style="display: block; z-index: 1; position: absolute; left: 100px; top: 100px;">-->
-                <input type="text" style="display: block; position: absolute; left: 200px; top: 200px;">
+                <input id="input1" type="text" style="display: none; position: absolute;">
+                <input id="input2" type="text" style="display: none; position: absolute;">
 
               </div>
             </b-col>
@@ -218,9 +218,11 @@
           this.mouseTo.y = e.offsetY;
         }
       },
-      drawLineUp(e) {
+      drawLineUp: function (e) {
         if (this.draw) {
           let canvasDraw = document.getElementById('canvas3');
+          let input1 = document.getElementById('input1');
+          let input2 = document.getElementById('input2');
           let context = canvasDraw.getContext("2d");
           this.lines.push([this.mouseTo.x, this.mouseTo.y]);
           context.arc(this.mouseTo.x, this.mouseTo.y, 4, 0, 2 * Math.PI, true)
@@ -229,8 +231,37 @@
           context.stroke();
           context.closePath();
           this.draw = false;
-          // TODO: добавить появление <input> внутри "canvas" с координатами чуть выше/ниже середины нарисованной линии
+          if (this.countLine === 1) {
+            let alfa = (this.mouseTo.y - this.mouse.y) / (this.mouseTo.x - this.mouse.x);
+            let deltaX = (this.mouseTo.x + this.mouse.x) / 2;
+            let deltaY = (this.mouseTo.y + this.mouse.y) / 2;
+            if (Math.atan(alfa) < 0) {
+              deltaY += 15;
+              input1.style.left = deltaX + 'px';
+              input1.style.top = deltaY + 'px';
+              input1.style.display = 'block';
+            } else {
+              deltaY -= 40;
+              input1.style.left = deltaX + 'px';
+              input1.style.top = deltaY + 'px';
+              input1.style.display = 'block';
+            }
+          }
           if (this.countLine >= 2) {
+            let alfa = (this.mouseTo.y - this.mouse.y) / (this.mouseTo.x - this.mouse.x);
+            let deltaX = (this.mouseTo.x + this.mouse.x) / 2;
+            let deltaY = (this.mouseTo.y + this.mouse.y) / 2;
+            if (Math.atan(alfa) < 0) {
+              deltaY += 15;
+              input2.style.left = deltaX + 'px';
+              input2.style.top = deltaY + 'px';
+              input2.style.display = 'block';
+            } else {
+              deltaY -= 40;
+              input2.style.left = deltaX + 'px';
+              input2.style.top = deltaY + 'px';
+              input2.style.display = 'block';
+            }
             this.RemoveDrawLines();
           }
         }
@@ -260,9 +291,13 @@
         canvasDraw1.addEventListener('mousedown', this.drawPixel, false);
 
         let canvasDraw2 = document.getElementById('canvas3');
+        let input1 = document.getElementById('input1');
+        let input2 = document.getElementById('input2');
         let context2 = canvasDraw2.getContext("2d");
         context2.clearRect(0, 0, canvasDraw2.width, canvasDraw2.height);
         canvasDraw2.style.display = 'none';
+        input1.style.display = 'none';
+        input2.style.display = 'none';
         this.countLine = 0;
         this.draw = false;
         this.lines = [];
