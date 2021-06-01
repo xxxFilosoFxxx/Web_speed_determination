@@ -24,8 +24,8 @@
                 <canvas id="canvas2"></canvas>
                 <canvas id="canvas3" style="display: none;"></canvas>
 
-                <input id="input1" type="text" style="display: none; position: absolute;">
-                <input id="input2" type="text" style="display: none; position: absolute;">
+                <input class="input-draw" id="input1" type="text" size="5">
+                <input class="input-draw" id="input2" type="text" size="5">
 
               </div>
             </b-col>
@@ -297,7 +297,9 @@
         context2.clearRect(0, 0, canvasDraw2.width, canvasDraw2.height);
         canvasDraw2.style.display = 'none';
         input1.style.display = 'none';
+        input1.value = '';
         input2.style.display = 'none';
+        input2.value = '';
         this.countLine = 0;
         this.draw = false;
         this.lines = [];
@@ -371,5 +373,15 @@
     top: 0;
     width:100%;
     height:100%;
+  }
+  .input-draw {
+    display: none;
+    outline: none;
+    position: absolute;
+    background: transparent;
+    border-radius: 5px;
+    border-color: rgb(255, 0, 0);
+    color: rgb(255, 0, 0);
+    font-weight: bold;
   }
 </style>
