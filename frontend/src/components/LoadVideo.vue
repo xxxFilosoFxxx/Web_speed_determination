@@ -20,9 +20,10 @@
             <b-col v-show="file">
               <p class="h3">Область для выбора параметров видеозаписи:</p>
               <div id="drawingImage">
-                <canvas id="canvas1"></canvas>
-                <canvas id="canvas2"></canvas>
-                <canvas id="canvas3" style="display: none;"></canvas>
+                <canvas class="canvas" id="canvas1"></canvas>
+                <canvas class="canvas" id="canvas2"></canvas>
+                <canvas class="canvas" id="canvas3" style="display: none;"></canvas>
+                <canvas class="canvas" id="canvas4" style="display: none;"></canvas>
 
                 <input class="input-draw" id="input1" type="text" size="5">
                 <input class="input-draw" id="input2" type="text" size="5">
@@ -34,6 +35,7 @@
 
         <b-button @click="submitFile()">Отправить</b-button>
         <b-button id="clearCanvas" v-show="file" @click="clearCanvas()">Очистить поле</b-button>
+        <b-button id="drawGrid" v-show="file" @click="drawGrid()">Нарисовать сетку</b-button>
       </b-form-group>
     </b-container>
 
@@ -48,7 +50,7 @@
 <script>
   /* eslint-disable */
   import axios from 'axios';
-  import ProjectionCalculator2d from 'projection-3d-2d';
+  import { ProjectionCalculator2d } from 'projection-3d-2d';
 
   export default {
     name: 'LoadVideo',
@@ -65,6 +67,7 @@
         pixels: [],
         pixelsForDraw: [],
         lines: [],
+        distance: [],
         imgURL: 'http://localhost:8000/main/live_video/'
       }
     },
@@ -90,13 +93,15 @@
         reader.readAsDataURL(this.file);
 
         video.addEventListener('play', this.timerCallback, false);
-
         this.drawPixels();
 
         // TODO: обработать матрицу точек и линий
       }
     },
     methods: {
+      distanceEuclid(a, b) {
+        return Math.sqrt(Math.pow(b[0] - a[0], 2) + Math.pow(b[1] - a[1], 2));
+      },
       computeFrame() {
         let canvas = document.getElementById('canvas1');
         canvas.width = this.videoPreview.width;
@@ -193,7 +198,7 @@
         let context = canvasDraw.getContext("2d");
         canvasDraw.width = this.videoPreview.width;
         canvasDraw.height = this.videoPreview.height;
-        context.lineWidth = 3;
+        context.lineWidth = 2;
         context.strokeStyle = 'rgb(0, 255, 0)';
         context.fillStyle = 'rgb(0, 255, 0)';
 
@@ -271,7 +276,7 @@
         let context = canvasDraw.getContext("2d");
         canvasDraw.width = this.videoPreview.width;
         canvasDraw.height = this.videoPreview.height;
-        context.lineWidth = 3;
+        context.lineWidth = 2;
         context.strokeStyle = 'rgb(255, 0, 0)';
         context.fillStyle = 'rgb(255, 0, 0)';
 
@@ -306,6 +311,66 @@
         canvasDraw2.removeEventListener('mousedown', this.drawLineDown, false);
         canvasDraw2.removeEventListener('mousemove', this.drawLineMove, false);
         canvasDraw2.removeEventListener('mouseup', this.drawLineUp, false);
+
+        let canvasGrid = document.getElementById('canvas4');
+        let context3 = canvasGrid.getContext("2d");
+        context3.clearRect(0, 0, canvasGrid.width, canvasGrid.height);
+        this.distance = [];
+        canvasGrid.style.display = 'none';
+      },
+      drawGrid(step = 1) {
+        this.distance = [];
+        let canvasGrid = document.getElementById('canvas4');
+        canvasGrid.style.display = 'block';
+        canvasGrid.width = this.videoPreview.width;
+        canvasGrid.height = this.videoPreview.height;
+        let context = canvasGrid.getContext("2d");
+        context.lineWidth = 1;
+        context.strokeStyle = 'rgb(0, 255, 0)';
+        let width, height;
+        try {
+          width = parseFloat(document.getElementById('input1').value);
+          height = parseFloat(document.getElementById('input2').value);
+        }
+        catch (e) {
+          alert('Введите верные значения расстояния плоксоксти.');
+        }
+        let distanceLineWidth = this.distanceEuclid(this.lines[1], this.lines[0]);
+        let distanceLineHeight = this.distanceEuclid(this.lines[3], this.lines[2]);
+        let distancePixelsWidth = this.distanceEuclid(this.pixels[1], this.pixels[0]);
+        let distancePixelsHeight = this.distanceEuclid(this.pixels[2], this.pixels[0]);
+
+        let deltaWidth = distancePixelsWidth / distanceLineWidth;
+        let deltaHeight = distancePixelsHeight / distanceLineHeight;
+        this.distance.push([0, 0],
+                           [width * deltaWidth, 0],
+                           [0, height * deltaHeight],
+                           [width * deltaWidth, height * deltaHeight]);
+        const projectionCalculator = new ProjectionCalculator2d(this.distance, this.pixels);
+        let minDistance = projectionCalculator.getUnprojectedPoint([0, 0]);
+        let maxDistance = projectionCalculator.getUnprojectedPoint([2048, 1080]);
+        // console.log(this.pixels);
+        // console.log(minDistance);
+        // console.log(maxDistance);
+
+        context.beginPath();
+        for (let x = minDistance[0]; x <= maxDistance[0] + 10; x += step) {
+          let pixel2d_1 = projectionCalculator.getProjectedPoint([x, minDistance[1]]);
+          let pixel2d_2 = projectionCalculator.getProjectedPoint([x, maxDistance[1]]);
+          context.moveTo(pixel2d_1[0], pixel2d_1[1]);
+          context.lineTo(pixel2d_2[0], pixel2d_2[1]);
+        }
+        for (let y = minDistance[1]; y <= maxDistance[1]; y += step) {
+          let pixel2d_1 = projectionCalculator.getProjectedPoint([minDistance[0], y]);
+          let pixel2d_2 = projectionCalculator.getProjectedPoint([maxDistance[0] + 10, y]);
+          context.moveTo(pixel2d_1[0], pixel2d_1[1]);
+          context.lineTo(pixel2d_2[0], pixel2d_2[1]);
+        }
+        context.stroke();
+        context.closePath();
+      },
+      getMatrix(a, b) {
+
       },
       getTranslation() {
         this.translationInfo = this.imgURL + this.file.name;
@@ -353,21 +418,7 @@
     width: 1280px;
     height: 720px;
   }
-  #canvas1 {
-    position: absolute;
-    left: 0;
-    top: 0;
-    width:100%;
-    height:100%;
-  }
-  #canvas2 {
-    position: absolute;
-    left: 0;
-    top: 0;
-    width:100%;
-    height:100%;
-  }
-  #canvas3 {
+  .canvas {
     position: absolute;
     left: 0;
     top: 0;
