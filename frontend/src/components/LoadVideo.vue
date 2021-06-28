@@ -91,11 +91,9 @@
         let reader = new FileReader();
         reader.onload = (e) => { this.videoPreview.src = e.target.result; };
         reader.readAsDataURL(this.file);
-
+        // Запуск показа видео и начало обработки пользователем выбранного кадра
         video.addEventListener('play', this.timerCallback, false);
         this.drawPixels();
-
-        // TODO: обработать матрицу точек и линий
       }
     },
     methods: {
@@ -334,7 +332,7 @@
           alert('Введите верные значения расстояния плоксоксти.');
           return false;
         }
-
+        // По расстоянию Евклида соотнесем ширину и высоту для прямоугольника
         let distanceLineWidth = this.distanceEuclid(this.lines[1], this.lines[0]);
         let distanceLineHeight = this.distanceEuclid(this.lines[3], this.lines[2]);
         let distancePixelsWidth = this.distanceEuclid(this.pixels[1], this.pixels[0]);
@@ -349,10 +347,6 @@
         const projectionCalculator = new ProjectionCalculator2d(this.distance, this.pixels);
         let minDistance = projectionCalculator.getUnprojectedPoint([0, 0]);
         let maxDistance = projectionCalculator.getUnprojectedPoint([2048, 1080]);
-        // console.log(this.pixels);
-        // console.log(minDistance);
-        // console.log(maxDistance);
-        // console.log(projectionCalculator.resultMatrix);
 
         context.beginPath();
         for (let x = minDistance[0]; x <= maxDistance[0] + 10; x += step) {
