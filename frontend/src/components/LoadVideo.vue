@@ -318,7 +318,7 @@
         this.distance = [];
         canvasGrid.style.display = 'none';
       },
-      drawGrid(step = 1) {
+      drawGrid(step = 2) {
         this.distance = [];
         let canvasGrid = document.getElementById('canvas4');
         canvasGrid.style.display = 'block';
@@ -328,13 +328,13 @@
         context.lineWidth = 1;
         context.strokeStyle = 'rgb(0, 255, 0)';
         let width, height;
-        try {
-          width = parseFloat(document.getElementById('input1').value);
-          height = parseFloat(document.getElementById('input2').value);
-        }
-        catch (e) {
+        width = parseFloat(document.getElementById('input1').value);
+        height = parseFloat(document.getElementById('input2').value);
+        if (isNaN(width) || isNaN(height)) {
           alert('Введите верные значения расстояния плоксоксти.');
+          return false;
         }
+
         let distanceLineWidth = this.distanceEuclid(this.lines[1], this.lines[0]);
         let distanceLineHeight = this.distanceEuclid(this.lines[3], this.lines[2]);
         let distancePixelsWidth = this.distanceEuclid(this.pixels[1], this.pixels[0]);
@@ -352,6 +352,7 @@
         // console.log(this.pixels);
         // console.log(minDistance);
         // console.log(maxDistance);
+        // console.log(projectionCalculator.resultMatrix);
 
         context.beginPath();
         for (let x = minDistance[0]; x <= maxDistance[0] + 10; x += step) {
@@ -369,8 +370,9 @@
         context.stroke();
         context.closePath();
       },
-      getMatrix(a, b) {
-
+      getMatrix() {
+        const projectionCalculator = new ProjectionCalculator2d(this.distance, this.pixels);
+        return projectionCalculator.resultMatrix;
       },
       getTranslation() {
         this.translationInfo = this.imgURL + this.file.name;
@@ -387,7 +389,9 @@
       },
       submitFile() {
         let formData = new FormData();
+        let resultMatrix = this.getMatrix();
         formData.append('file', this.file);
+        formData.append('matrix', resultMatrix.toString()); // Матрица 3х3 в виде строки
         axios.post( 'http://localhost:8000/main/load_video/',
           formData,
           {
