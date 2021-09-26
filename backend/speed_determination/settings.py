@@ -24,7 +24,11 @@ DEBUG = True
 
 ALLOWED_HOSTS = ['*']
 
+<<<<<<< HEAD
 
+=======
+# TODO: поменять пути для статических файлов
+>>>>>>> interface
 # Application definition
 
 INSTALLED_APPS = [
