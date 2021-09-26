@@ -2,6 +2,10 @@
 node_modules
 /dist
 
+*.pyc
+.coverage
+venv/
+
 
 # local env files
 .env.local
