@@ -1,3 +1,7 @@
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> 5dc33da (v2.0.1)
 #!/usr/bin/env python
 """Django's command-line utility for administrative tasks."""
 import os
@@ -20,3 +24,25 @@ def main():
 
 if __name__ == '__main__':
     main()
+<<<<<<< HEAD
+=======
+=======
+import os
+from flask_script import Manager
+from flask_migrate import Migrate, MigrateCommand
+from models import InitDbCommand
+from app import app, db
+
+app.config.from_object(os.environ['APP_SETTINGS'])
+
+migrate = Migrate(app, db)
+manager = Manager(app)
+
+manager.add_command('db', MigrateCommand)
+manager.add_command('init_db', InitDbCommand)
+
+
+if __name__ == '__main__':
+    manager.run()
+>>>>>>> c7d71ff (v2.0.1)
+>>>>>>> 5dc33da (v2.0.1)

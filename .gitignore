@@ -1,9 +1,20 @@
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
+=======
+<<<<<<< HEAD
+=======
+=======
+>>>>>>> c7d71ff (v2.0.1)
+>>>>>>> 5dc33da (v2.0.1)
 .DS_Store
 node_modules
 /dist
 
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> 5dc33da (v2.0.1)
 >>>>>>> interface
 *.pyc
 .coverage
@@ -18,6 +29,12 @@ yarn-debug.log*
 yarn-error.log*
 /test/unit/coverage/
 =======
+<<<<<<< HEAD
+=======
+=======
+
+>>>>>>> c7d71ff (v2.0.1)
+>>>>>>> 5dc33da (v2.0.1)
 # local env files
 .env.local
 .env.*.local
@@ -27,7 +44,14 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
+<<<<<<< HEAD
 >>>>>>> interface
+=======
+<<<<<<< HEAD
+>>>>>>> interface
+=======
+>>>>>>> c7d71ff (v2.0.1)
+>>>>>>> 5dc33da (v2.0.1)
 
 # Editor directories and files
 .idea
@@ -36,8 +60,19 @@ pnpm-debug.log*
 *.ntvs*
 *.njsproj
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> 5dc33da (v2.0.1)
 *.sln
 =======
 *.sln
 *.sw?
 >>>>>>> interface
+<<<<<<< HEAD
+=======
+=======
+*.sln
+*.sw?
+>>>>>>> c7d71ff (v2.0.1)
+>>>>>>> 5dc33da (v2.0.1)
