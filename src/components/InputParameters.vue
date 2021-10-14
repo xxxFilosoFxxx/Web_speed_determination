@@ -1,8 +1,8 @@
 <template>
   <div class="q-pa-md" style="max-width: 400px">
     <q-form
-        @submit="submitTask"
-        @reset="onReset"
+        @submit.prevent="submitTask()"
+        @reset="onReset()"
         class="q-gutter-md">
 
       <q-input outlined
@@ -44,33 +44,37 @@ import { ref } from "vue";
 
 export default {
   name: "InputParameters",
-
+  data() {
+    return {
+      msisdn: ref(null),
+      radius: ref(null),
+      delta: ref(null)
+    }
+  },
   setup() {
     const $q = useQuasar();
-
-    const msisdn = ref(null);
-    const radius = ref(null);
-    const delta = ref(null);
-
     return {
-      msisdn,
-      radius,
-      delta,
-
-      submitTask () {
+      showNotify() {
         $q.notify({
           color: 'green-4',
           textColor: 'white',
           icon: 'cloud_done',
           message: 'Задача отправлена на обработку'
-        })
-      },
-
-      onReset () {
-        msisdn.value = null;
-        radius.value = null;
-        delta.value = null;
+        });
       }
+    }
+  },
+  methods: {
+    submitTask() {
+      let task_json = {msisdn: this.msisdn, radius: this.radius,
+                       delta: this.delta, username: this.$store.state.username};
+      this.$store.dispatch('sendTask', task_json);
+      this.showNotify();
+    },
+    onReset() {
+      this.msisdn = null;
+      this.radius = null;
+      this.delta = null;
     }
   }
 }

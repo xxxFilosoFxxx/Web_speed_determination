@@ -1,8 +1,8 @@
 <template>
   <div class="q-pa-md" style="max-width: 400px">
     <q-form
-        @submit="submitRegister"
-        @reset="onReset"
+        @submit.prevent="submitRegister()"
+        @reset="onReset()"
         class="q-gutter-md">
 
       <q-input outlined
@@ -30,8 +30,11 @@
         </template>
       </q-input>
       <div>
-        <q-btn type="submit" label="Зарегестрироваться" color="indigo-10" />
+        <q-btn type="submit" label="Регистрация" color="indigo-10" />
         <q-btn type="reset" label="Сбросить" color="primary" flat class="q-ml-sm" />
+      </div>
+      <div>
+        <q-btn color="primary" label="Авторизация" to="/login" />
       </div>
     </q-form>
 
@@ -39,36 +42,25 @@
 </template>
 
 <script>
-import {useQuasar} from "quasar";
 import { ref } from "vue";
 
 export default {
   name: "RegisterForm",
-
-  setup() {
-    const $q = useQuasar();
-
-    const login = ref(null);
-    const password = ref(null);
-
+  data() {
     return {
-      login,
-      password,
-      isPwd: ref(true),
-
-      submitRegister () {
-        $q.notify({
-          color: 'green-4',
-          textColor: 'white',
-          icon: 'cloud_done',
-          message: 'Задача отправлена на обработку'
-        })
-      },
-
-      onReset () {
-        login.value = null;
-        password.value = null;
-      }
+      login: ref(null),
+      password: ref(null),
+      isPwd: ref(true)
+    }
+  },
+  methods: {
+    submitRegister() {
+      let register_json = {login: this.login, password: this.password}
+      this.$store.dispatch('sendRegister', register_json);
+    },
+    onReset() {
+      this.login = null;
+      this.password = null;
     }
   }
 }

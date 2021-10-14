@@ -381,6 +381,7 @@
           console.log('translation FAILURE!!');
         });
       },
+
       submitFile() {
         let formData = new FormData();
         let resultMatrix = this.getMatrix();

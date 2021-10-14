@@ -1,8 +1,8 @@
 import os
 from flask_script import Manager
 from flask_migrate import Migrate, MigrateCommand
-from models import InitDbCommand
-from app import app, db
+from backend.models import InitDbCommand
+from backend.app import app, db
 
 app.config.from_object(os.environ['APP_SETTINGS'])
 
