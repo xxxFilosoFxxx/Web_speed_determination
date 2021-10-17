@@ -2,7 +2,7 @@
 """
 Основной скрипт для распознавания и подсчета скорости объекта
 """
-import pathlib
+import threading
 from datetime import datetime
 import os
 import numpy as np
@@ -10,16 +10,18 @@ import dlib
 from cv2 import cv2
 from imutils.video import FPS
 
-from django.conf import settings
+from backend.app import app
 
-from .idtracker.centroid_tracker import CentroidTracker
-from .idtracker.trackable_object import TrackableObject
-from .search_speed import SearchSpeed
+from backend.speed_detection.idtracker.centroid_tracker import CentroidTracker
+from backend.speed_detection.idtracker.trackable_object import TrackableObject
+from backend.speed_detection.search_speed import SearchSpeed
 
 # процент распознавания
 PERCENT = os.environ.get('PERCENT', 0.2)
 # интервал времени, в котором выполняется поиск скорости
 TIME = os.environ.get('TIME', 1)
+# блокировка для передачи данных в поток
+LOCK = threading.Lock()
 
 
 class DetectionPeople:
@@ -29,10 +31,11 @@ class DetectionPeople:
     -> с сохранением в видеофайл
     """
 
-    def __init__(self, video):
+    def __init__(self, video, filename):
         self.cap = cv2.VideoCapture(video)
-        path_prototxt = pathlib.Path("MobileNetSSD/MobileNetSSD_deploy.prototxt").resolve()
-        path_caffemodel = pathlib.Path("MobileNetSSD/MobileNetSSD_deploy.caffemodel").resolve()
+        path_prototxt = os.path.abspath(app.config['APP_DIR']) + '/MobileNetSSD/MobileNetSSD_deploy.prototxt'
+        path_caffemodel = os.path.abspath(app.config['APP_DIR']) + '/MobileNetSSD/MobileNetSSD_deploy.caffemodel'
+
         self.net = cv2.dnn.readNetFromCaffe(str(path_prototxt),
                                             str(path_caffemodel))
         self.class_name = {0: 'background', 1: 'aeroplane', 2: 'bicycle', 3: 'bird',
@@ -45,6 +48,9 @@ class DetectionPeople:
         self.frame_count = 0
         self.people_count = 0
         self.skip_frames = self.cap.get(cv2.CAP_PROP_FPS)
+        self.ret, self.frame = self.cap.read()
+        self.output_frame = self.frame
+        threading.Thread(target=self.translation_video, args=(filename,), daemon=True).start()
 
     def search_people(self, wight, height, out, rgb, trackers):
         """
@@ -168,6 +174,9 @@ class DetectionPeople:
             cv2.putText(frame, info, (20, frame.shape[0] - ((idx * 50) + 50)),
                         cv2.FONT_HERSHEY_SIMPLEX, 1.2, (0, 0, 0), 1, cv2.LINE_AA)
 
+    def get_frame(self):
+        return self.output_frame
+
     def translation_video(self, process_file):
         """
         Функция позволяет в реальном времени
@@ -175,51 +184,65 @@ class DetectionPeople:
         """
         fps = FPS().start()
         centroid_tracker = CentroidTracker(max_disappeared=50, max_distance=50)
+        # fourcc = cv2.VideoWriter_fourcc(*'H264')
+        # fourcc = cv2.VideoWriter_fourcc(*'avc1')
+        fourcc = cv2.VideoWriter_fourcc(*'mp4v')  # Не лучший вариант, но на выше стоящие кодеки вызывается ошибка
         if not self.cap.isOpened():
             print("[INFO] failed to process video")
-            return -1
-        filename_csv = settings.MEDIA_ROOT + '/csv: %s.csv' % str(process_file)
+            raise
+        # ret, frame = self.cap.read()
+        filename = app.config['UPLOAD_FOLDER'] + '/output_video: %r.mp4' % datetime.now().strftime("%d-%m-%Y %H:%M")
+        filename_csv = app.config['UPLOAD_FOLDER'] + '/csv: %s.csv' % str(process_file)
+
+        out_video = cv2.VideoWriter(filename, fourcc, self.skip_frames,
+                                    (self.frame.shape[1], self.frame.shape[0]))
         with open(filename_csv, mode="w", encoding='utf-8') as file:
             file.write("timestamp;ID;speed\r\n")
         trackers = list()
 
         while self.cap.isOpened():
-            ret, frame = self.cap.read()
+            self.ret, self.frame = self.cap.read()
 
-            if ret:
-                rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+            if self.ret:
+                rgb = cv2.cvtColor(self.frame, cv2.COLOR_BGR2RGB)
                 rect = list()
                 if self.frame_count % int(self.skip_frames) == 0:
                     trackers = list()
-                    wight, height, out = self.config(frame)
+                    wight, height, out = self.config(self.frame)
                     self.search_people(wight, height, out, rgb, trackers)
                 else:
-                    self.status_tracking(rect, rgb, frame, trackers)
+                    self.status_tracking(rect, rgb, self.frame, trackers)
                 objects = centroid_tracker.update(rect)
-                self.object_and_speed(filename_csv, objects, frame)
+                self.object_and_speed(filename_csv, objects, self.frame)
 
                 info = [
                     ("Number of tracked objects", len(objects)),
                     ("Recognition percentage", self.percent),
                     ("Recognition object", self.class_name[15])
                 ]
-                self.statistics_output(info, frame)
+                self.statistics_output(info, self.frame)
                 self.frame_count += 1
 
-                _, buffer = cv2.imencode('.jpg', frame)
-                image = buffer.tobytes()
-                yield (b'--frame\r\n'
-                       b'Content-Type: image/jpeg\r\n\r\n' + image + b'\r\n')
+                with LOCK:
+                    self.output_frame = self.frame.copy()
+                # _, buffer = cv2.imencode('.jpg', frame)
+                # image = buffer.tobytes()
+                # yield (b'--frame\r\n'
+                #        b'Content-Type: image/jpeg\r\n\r\n' + image + b'\r\n')
 
                 # if cv2.waitKey(1) >= 0:  # Break with ESC
                 #     break
                 fps.update()
+                out_video.write(self.frame)
             else:
+                with LOCK:
+                    self.output_frame = None
                 break
         fps.stop()
         print("[INFO] elapsed time: {:.2f}".format(fps.elapsed()))
         print("[INFO] approx. FPS: {:.2f}".format(fps.fps()))
         self.cap.release()
+        out_video.release()
         return 0
 
     def save_frames(self):
@@ -231,10 +254,10 @@ class DetectionPeople:
         fourcc = cv2.VideoWriter_fourcc(*'H264')
         if not self.cap.isOpened():
             print("[INFO] failed to process video")
-            return -1
+            raise
         ret, frame = self.cap.read()
-        filename = settings.MEDIA_ROOT + '/output_video: %r.mp4' % datetime.now().strftime("%d-%m-%Y %H:%M")
-        filename_csv = settings.MEDIA_ROOT + '/output_csv: %r.csv' % datetime.now().strftime("%d-%m-%Y %H:%M")
+        filename = app.config['UPLOAD_FOLDER'] + '/output_video: %r.mp4' % datetime.now().strftime("%d-%m-%Y %H:%M")
+        filename_csv = app.config['UPLOAD_FOLDER'] + '/output_csv: %r.csv' % datetime.now().strftime("%d-%m-%Y %H:%M")
 
         out_video = cv2.VideoWriter(filename, fourcc, self.skip_frames,
                                     (frame.shape[1], frame.shape[0]))
@@ -276,3 +299,15 @@ class DetectionPeople:
         self.cap.release()
         out_video.release()
         return 0
+
+
+def generate(video):
+    while True:
+        with LOCK:
+            image = video.get_frame()
+            if image is None:
+                break
+            _, buffer = cv2.imencode('.jpg', image)
+            encoded_image = buffer.tobytes()
+        yield (b'--frame\r\n'
+               b'Content-Type: image/jpeg\r\n\r\n' + encoded_image + b'\r\n')

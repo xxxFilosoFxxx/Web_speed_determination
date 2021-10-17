@@ -9,7 +9,7 @@ class Config(object):
     ROOT_DIR = os.path.dirname(APP_DIR)
     DIST_DIR = os.path.join(ROOT_DIR, 'dist')
     LOG_PATH = os.path.abspath(ROOT_DIR) + '/error.log'
-    # LOG_PATH = os.path.abspath(os.path.dirname(__file__)) + '/error.log'
+    UPLOAD_FOLDER = os.path.join(APP_DIR, 'media')
     CSRF_ENABLES = True
     SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL', 'postgresql://test:test@localhost/tasks_docs')
     SQLALCHEMY_TRACK_MODIFICATIONS = False

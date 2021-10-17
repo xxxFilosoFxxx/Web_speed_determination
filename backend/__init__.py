@@ -1,9 +1,12 @@
-from flask import render_template, jsonify, request
+import os
+
+from flask import render_template, jsonify, request, Response
 from flask_login import login_required, logout_user, current_user
 from backend.app import app
 from backend.utils import operations_utils as op
 from backend.utils.common_utils import process_log_string
-from backend.celery_tasks import send_task
+from backend.celery_tasks import video_processing
+from backend.speed_detection.detection_frame import DetectionPeople, generate
 
 
 @app.route('/')
@@ -37,17 +40,31 @@ def logout():
         raise
 
 
+@app.route('/live_video/<filename>', methods=['GET'])
+@login_required
+def live_video(filename):
+    try:
+        print("[INFO] starting save video...")
+        path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+        new_video = DetectionPeople(path, filename)
+        # TODO: запись в БД id пользователя для его личной папки видео
+        return Response(generate(new_video),
+                        mimetype='multipart/x-mixed-replace; boundary=frame')
+        # return Response(new_video.translation_video(str(filename)),
+        #                 mimetype='multipart/x-mixed-replace; boundary=frame')
+    except Exception:
+        app.logger.exception(process_log_string(request))
+        raise
+
+
 @app.route('/status_tasks', methods=['GET'])
 @login_required
 def status_tasks():
     try:
-        # response = {
-        #     'tasks': op.get_tasks_status(current_user.username)
-        # }
         tasks_id = op.get_user_tasks(current_user.username)
         all_user_task = {}
         for uuid in tasks_id:
-            all_user_task[uuid] = send_task.AsyncResult(uuid).state
+            all_user_task[uuid] = video_processing.AsyncResult(uuid).state
         response = {
             'tasks': all_user_task
         }
@@ -61,11 +78,10 @@ def status_tasks():
 @login_required
 def all_result_tasks():
     try:
-        # response = op.get_user_tasks(current_user.username)
         response = []
         tasks_id = op.get_user_tasks(current_user.username)
         for uuid in tasks_id:
-            result = send_task.AsyncResult(uuid)
+            result = video_processing.AsyncResult(uuid)
             if result.state == 'PENDING':
                 task = {
                     'task_id': uuid,
@@ -102,7 +118,7 @@ def all_result_tasks():
 @login_required
 def result_task(task_id):
     try:
-        task = send_task.AsyncResult(task_id)
+        task = video_processing.AsyncResult(task_id)
         if task.state == 'PENDING':  # Цвет -> Синий
             response = {
                 'task_id': task_id,
