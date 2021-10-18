@@ -8,6 +8,8 @@ from backend.app import app
 from backend.utils import operations_utils as op
 from backend.utils.common_utils import process_log_string
 # from backend.celery_tasks import send_task
+# from backend.speed_detection.detection_frame import DetectionPeople
+from backend.celery_tasks import video_processing
 from . import api_bp
 
 
@@ -68,43 +70,6 @@ def register():
 #     except Exception:
 #         app.logger.exception(process_log_string(request))
 #         raise
-#
-#
-# @app.route('/uploads/<name>')
-# def download_file(name):
-#     try:
-#         return send_from_directory(app.config["UPLOAD_FOLDER"], name)
-#     except Exception:
-#         app.logger.exception(process_log_string(request))
-#         raise
-#
-#
-# @api_bp.route('/load_video', methods=['POST'])
-# @login_required
-# def load_video():
-#     try:
-#         if 'file' not in request.files:
-#             return jsonify({'file': 'Ошибка загрузки видео'})
-#         file = request.files['file']
-#         if file.filename == '':
-#             return jsonify({'file': 'Нет выбранного файла'})
-#         filename = secure_filename(file.filename)
-#         file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
-#         # return jsonify({'file': 'Файл успешно обработался'}), 200
-#         return redirect(url_for('download_file', name=filename))
-#
-#         msisdn = request.json.get('msisdn', None)
-#         radius = request.json.get('radius', None)
-#         delta = request.json.get('delta', None)
-#         username = request.json.get('username', None)
-#
-#         task = send_task.apply_async(args=[msisdn, radius, delta], countdown=countdown)
-#         op.send_task_progress(task.id, username)
-#         # print(f'Обработка данных пользователя {username}: {msisdn}, {radius}, {delta} через {countdown} секунд!')
-#         return jsonify({'task_id': task.id, 'status': task.state}), 202
-#     except Exception:
-#         app.logger.exception(process_log_string(request))
-#         raise
 
 
 @api_bp.route('/load_video', methods=['POST'])
@@ -117,8 +82,14 @@ def load_video():
         if file.filename == '':
             return jsonify({'file': 'Нет выбранного файла'})
         filename = secure_filename(file.filename)
-        file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
-        return jsonify({'file': filename}), 200
+        path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+        file.save(path)
+        print("[INFO] starting save video...")
+        username = current_user.username
+        # new_video = DetectionPeople(path)
+        task = video_processing.delay(path, filename)
+        op.send_task_progress(task.id, username)
+        return jsonify({'file': filename, 'task_id': task.id, 'status': task.state}), 202
     except Exception:
         app.logger.exception(process_log_string(request))
         raise

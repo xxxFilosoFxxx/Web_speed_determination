@@ -1,12 +1,10 @@
-import os
-
-from flask import render_template, jsonify, request, Response
+from flask import render_template, jsonify, request
 from flask_login import login_required, logout_user, current_user
 from backend.app import app
 from backend.utils import operations_utils as op
 from backend.utils.common_utils import process_log_string
 from backend.celery_tasks import video_processing
-from backend.speed_detection.detection_frame import DetectionPeople, generate
+from backend.speed_detection.detection_frame import DetectionPeople
 
 
 @app.route('/')
@@ -40,21 +38,18 @@ def logout():
         raise
 
 
-@app.route('/live_video/<filename>', methods=['GET'])
-@login_required
-def live_video(filename):
-    try:
-        print("[INFO] starting save video...")
-        path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-        new_video = DetectionPeople(path, filename)
-        # TODO: запись в БД id пользователя для его личной папки видео
-        return Response(generate(new_video),
-                        mimetype='multipart/x-mixed-replace; boundary=frame')
-        # return Response(new_video.translation_video(str(filename)),
-        #                 mimetype='multipart/x-mixed-replace; boundary=frame')
-    except Exception:
-        app.logger.exception(process_log_string(request))
-        raise
+# @app.route('/live_video/<filename>', methods=['GET'])
+# @login_required
+# def live_video(filename):
+#     try:
+#         print("[INFO] starting save video...")
+#         path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+#         new_video = DetectionPeople(path)
+#         return Response(generate(new_video),
+#                         mimetype='multipart/x-mixed-replace; boundary=frame')
+#     except Exception:
+#         app.logger.exception(process_log_string(request))
+#         raise
 
 
 @app.route('/status_tasks', methods=['GET'])
@@ -85,29 +80,34 @@ def all_result_tasks():
             if result.state == 'PENDING':
                 task = {
                     'task_id': uuid,
-                    'msisdn': None,
-                    'radius': None,
-                    'delta': None,
+                    'filename': None,
+                    'video': None,
                     'status': result.state
                 }
                 response.append(task)
             elif result.state != 'FAILURE':
                 task = {
                     'task_id': uuid,
-                    'msisdn': result.result['msisdn'],
-                    'radius': result.result['radius'],
-                    'delta': result.result['delta'],
+                    'filename': result.result['filename'],
+                    'video': None,
+                    'status': result.state
+                }
+                if result.state == 'SUCCESS':
+                    task = {
+                        'task_id': uuid,
+                        'filename': result.result['filename'],
+                        'video': result.result['video'],
+                        'status': result.state
+                    }
+                response.append(task)
+            else:
+                task = {
+                    'task_id': uuid,
+                    'filename': None,
+                    'video': None,
                     'status': result.state
                 }
                 response.append(task)
-            else:
-                response = {
-                    'task_id': uuid,
-                    'msisdn': None,
-                    'radius': None,
-                    'delta': None,
-                    'status': result.state
-                }
         return jsonify(response), 200
     except Exception:
         app.logger.exception(process_log_string(request))
@@ -142,14 +142,16 @@ def result_task(task_id):
                     'info': str(task.info),
                     'date_done': task.date_done.strftime('%H:%M | %d %B %Y')
                 }
-                pass
-        else:
+        else:  # Цвет -> Красный
             # Ошибка на стороне сервера (или где-то еще)
             response = {
                 'task_id': task_id,
                 'state': task.state,
-                'task_result': task.result,
-                'info': str(task.info)  # Цвет -> Красный
+                'task_result': {
+                    'filename': None,
+                    'video': None
+                },
+                'info': str(task.info)  # Информация об ошибке
             }
         return jsonify(response), 200
     except Exception:

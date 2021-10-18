@@ -55,13 +55,12 @@ class SearchSpeed:
         Returns:
             скорость объекта
         """
-        # TODO: по расстоянию Евклида на основе локационной привязки определить скорость объекта
+        # по расстоянию Евклида на основе локационной привязки определить скорость объекта
         if i in self.centroids and i in self.last_centroids:
             d_pixels = math.sqrt(math.pow(self.last_centroids[i][0] - self.centroids[i][0], 2) +
                                  math.pow(self.last_centroids[i][1] - self.centroids[i][1], 2))
             ppm = (width / WIDTH) * 10
             # определение через параметры не корректно!!!
-            # в силу разницы углов камеры на каждом видео
             d_meters = d_pixels / ppm
             fps = skip_frames
             speed = d_meters * fps * 3.6

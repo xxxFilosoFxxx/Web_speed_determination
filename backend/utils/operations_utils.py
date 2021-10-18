@@ -42,15 +42,6 @@ def send_task_progress(uuid: str, username: str) -> None:
     session_commit()
 
 
-# def serialize_query(query):
-#     return {
-#         'task_id': query.task_id,
-#         'result': query.result.tobytes().decode('utf-8', errors='ignore').replace(
-#             '\x05C\x00\x00\x00\x00\x00\x00\x00?', ''),
-#         'status': query.status
-#     }
-
-
 def get_user_tasks(username: str) -> list:  # List[Dict[str, Any]]
     user_id = User.query.filter_by(username=username).first().id
     tasks = UserTasks.query.filter_by(user_id=user_id).all()
