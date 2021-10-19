@@ -1,17 +1,17 @@
 <template>
   <div class="home">
-    <input-parameters/>
+    <load-video/>
   </div>
 </template>
 
 <script>
 
-import InputParameters from "@/components/InputParameters";
+import LoadVideo from "@/components/LoadVideo";
 
 export default {
   name: 'Home',
   components: {
-    InputParameters
+    LoadVideo
   }
 }
 </script>

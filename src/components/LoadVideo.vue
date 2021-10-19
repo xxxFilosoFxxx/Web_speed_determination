@@ -1,24 +1,41 @@
 <template>
-  <div class="container-fluid p-3 bg-light">
-    <b-container fluid="lg">
+  <div class="q-pa-md">
+    <q-form
+      @submit="submitFile()"
+      class="q-gutter-md">
 
-      <b-form-group label="Предварительный просмотр файла:" label-class="h3" label-for="video">
-        <b-form-file id="video"  v-model="file" accept="video/*" plain></b-form-file>
+      <q-file
+              label="Предварительный просмотр файла:"
+              v-model="file"
+              id="video"
+              accept="video/*"
+              clearable
+              filled
+              counter
+              style="max-width: 400px"
+      >
+        <template v-slot:prepend>
+          <q-icon name="cloud_upload" />
+        </template>
+      </q-file>
 
-        <b-container class="p-3" v-if="file">
-          <b-row>
-            <b-col> Название файла: {{ file.name }} </b-col>
-            <b-col> Размер: {{ file.size }} байт </b-col>
-            <b-col> Тип: {{ file.type }} </b-col>
-          </b-row>
-        </b-container>
+      <q-card>
+        <q-card-section>
+          <div class="text-h6">Выбор параметров видеозаписи</div>
+          <div class="text-subtitle2">выбрать кадр и назначить ширину/высоту</div>
+        </q-card-section>
 
-        <b-container>
-          <b-row>
-            <b-col ref="preview" id="preview"></b-col>
-            <div class="w-100"></div>
-            <b-col v-show="file">
-              <p class="h3">Область для выбора параметров видеозаписи:</p>
+        <q-tabs v-model="tab" class="text-black" indicator-color="orange">
+          <q-tab label="Параметры" name="one" />
+        </q-tabs>
+        <q-separator />
+
+        <q-tab-panels v-model="tab" animated>
+          <q-tab-panel name="one">
+            <div ref="preview" id="preview"></div>
+            <q-separator />
+
+            <div v-show="file">
               <div id="drawingImage">
                 <canvas class="canvas" id="canvas1"></canvas>
                 <canvas class="canvas" id="canvas2"></canvas>
@@ -27,38 +44,36 @@
 
                 <input class="input-draw" id="input1" type="text" size="5">
                 <input class="input-draw" id="input2" type="text" size="5">
-
               </div>
-            </b-col>
-          </b-row>
-        </b-container>
-
-        <b-button @click="submitFile()">Отправить</b-button>
-        <b-button id="clearCanvas" v-show="file" @click="clearCanvas()">Очистить поле</b-button>
-        <b-button id="drawGrid" v-show="file" @click="drawGrid()">Нарисовать сетку</b-button>
-      </b-form-group>
-    </b-container>
-
-    <b-container v-if="translationInfo">
-      <h3 class="mt-5">Прямая трансляция</h3>
-      <b-img ref="translation" id="translation" :src="translationInfo" thumbnail fluid-grow alt=""></b-img>
-    </b-container>
+              <q-btn-group>
+                <q-btn type="submit" push
+                       label="Отправить" icon="timeline" color="primary"/>
+                <q-btn id="clearCanvas"  @click="clearCanvas()" push
+                       label="Очистить поле" icon="update" color="primary"/>
+                <q-btn id="drawGrid" @click="drawGrid()" push
+                       label="Нарисовать сетку" icon="visibility" color="primary"/>
+              </q-btn-group>
+            </div>
+          </q-tab-panel>
+        </q-tab-panels>
+      </q-card>
+    </q-form>
 
   </div>
 </template>
 
 <script>
-  /* eslint-disable */
+  import {useQuasar} from "quasar";
+  import { ref } from 'vue';
   import axios from 'axios';
   import { ProjectionCalculator2d } from 'projection-3d-2d';
 
   export default {
-    name: 'LoadVideo',
+    name: "example",
     data() {
       return {
-        file: null,
-        videoPreview: null,
-        translationInfo: null,
+        file: ref(null),
+        videoPreview: ref(null),
         mouse: { x:0, y:0 },
         mouseTo: { x:0, y:0 },
         draw: false,
@@ -67,8 +82,23 @@
         pixels: [],
         pixelsForDraw: [],
         lines: [],
-        distance: [],
-        imgURL: 'http://localhost:8000/main/live_video/'
+        distance: []
+      }
+    },
+    setup() {
+      const $q = useQuasar();
+      const tab = ref('one');
+
+      return {
+        tab,
+        showNotify() {
+          $q.notify({
+            color: 'green-4',
+            textColor: 'white',
+            icon: 'cloud_done',
+            message: 'Задача отправлена на обработку'
+          });
+        }
       }
     },
     watch: {
@@ -221,7 +251,7 @@
           this.mouseTo.y = e.offsetY;
         }
       },
-      drawLineUp: function (e) {
+      drawLineUp() {
         if (this.draw) {
           let canvasDraw = document.getElementById('canvas3');
           let input1 = document.getElementById('input1');
@@ -368,26 +398,12 @@
         const projectionCalculator = new ProjectionCalculator2d(this.distance, this.pixels);
         return projectionCalculator.resultMatrix;
       },
-      getTranslation() {
-        this.translationInfo = this.imgURL + this.file.name;
-        axios.get(this.translationInfo)
-        .then((response) => {
-          console.log('translations SUCCESS!!');
-          if (response.status === 200) {
-            this.translationInfo = null;
-          }
-        })
-        .catch(function(){
-          console.log('translation FAILURE!!');
-        });
-      },
-
       submitFile() {
         let formData = new FormData();
         let resultMatrix = this.getMatrix();
         formData.append('file', this.file);
         formData.append('matrix', resultMatrix.toString()); // Матрица 3х3 в виде строки
-        axios.post( 'http://localhost:8000/main/load_video/',
+        axios.post( '/api/load_video',
           formData,
           {
             headers: {
@@ -395,20 +411,21 @@
             }
           }
         ).then((response) => {
-          console.log('SUCCESS!!');
-          if (response.status === 200) {
-            this.getTranslation();
+          // console.log('SUCCESS!!');
+          if (response.status === 202) {
+            let task = {filename: response.data['file'], id: response.data['task_id'], status: response.data.status};
+            console.log(task);
           }
         })
         .catch(function(){
-          console.log('FAILURE!!');
+          alert('Ошибка обработки видео');
         });
       }
-    },
+    }
   }
 </script>
 
-<style>
+<style lang="scss">
   #preview {
     /*margin-top: -40px;*/
   }

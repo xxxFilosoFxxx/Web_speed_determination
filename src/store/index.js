@@ -4,9 +4,8 @@ import router from '../router'
 
 const task = {
     id: null,
-    msisdn: null,
-    radius: null,
-    delta: null,
+    filename: null,
+    video: null,
     status: null
 }
 
@@ -40,10 +39,11 @@ export default createStore({
         },
         setCurrentTask(state, value) {
             state.currentTask.id = value['task_id'];
-            if (value['task_result'] !== null) {
-                state.currentTask.msisdn = value['task_result'].msisdn;
-                state.currentTask.radius = value['task_result'].radius;
-                state.currentTask.delta = value['task_result'].delta;
+            if (value['task_result'].filename !== null) {
+                state.currentTask.filename = value['task_result'].filename;
+            }
+            if (value['task_result'].video !== null) {
+                state.currentTask.video = value['task_result'].video;
             }
             state.currentTask.status = value['state'];
         },
@@ -64,16 +64,6 @@ export default createStore({
         }
     },
     actions: {
-        sendTask(context, task_json) {
-            axios.post('/api/send_task', task_json)
-                .then((response) => {
-                    let task = {id: response.data['task_id'], status: response.data.status};
-                    console.log(task);
-                })
-                .catch(function () {
-                    alert('Ошибка при отправке задачи в очередь');
-                });
-        },
         getTask(context, urlTask) {
             axios.get('/result_task/' + urlTask)
                 .then((response) => {

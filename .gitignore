@@ -1,6 +1,7 @@
 .DS_Store
 node_modules
 /dist
+backend/media
 
 *.pyc
 .coverage
@@ -20,6 +21,7 @@ pnpm-debug.log*
 # Editor directories and files
 .idea
 .vscode
+*.log
 *.suo
 *.ntvs*
 *.njsproj

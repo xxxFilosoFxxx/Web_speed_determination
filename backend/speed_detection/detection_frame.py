@@ -3,15 +3,14 @@
 Основной скрипт для распознавания и подсчета скорости объекта
 """
 # import threading
-from datetime import datetime
+# from datetime import datetime
 import os
 import numpy as np
 import dlib
-from cv2 import cv2
+
 from imutils.video import FPS
-
 from backend.app import app
-
+from cv2 import cv2
 from backend.speed_detection.idtracker.centroid_tracker import CentroidTracker
 from backend.speed_detection.idtracker.trackable_object import TrackableObject
 from backend.speed_detection.search_speed import SearchSpeed
@@ -251,14 +250,14 @@ class DetectionPeople:
         """
         fps = FPS().start()
         centroid_tracker = CentroidTracker(max_disappeared=50, max_distance=60)
-        fourcc = cv2.VideoWriter_fourcc(*'avc1')  # Не лучший вариант, но на выше стоящие кодеки вызывается ошибка
+        fourcc = cv2.VideoWriter_fourcc(*'mp4v')  # Не лучший вариант, но на выше стоящие кодеки вызывается ошибка
         if not self.cap.isOpened():
             print("[INFO] failed to process video")
             raise
         ret, frame = self.cap.read()
-        filename = f'SPEED_{name}.mp4'
+        filename = f'{name}.mp4'
         folder = app.config['UPLOAD_FOLDER'] + '/' + filename
-        filename_csv = app.config['UPLOAD_FOLDER'] + f'/output_csv:{name}.csv'
+        filename_csv = app.config['UPLOAD_FOLDER'] + f'/CSV_{name}.csv'
 
         out_video = cv2.VideoWriter(folder, fourcc, self.skip_frames,
                                     (frame.shape[1], frame.shape[0]))
