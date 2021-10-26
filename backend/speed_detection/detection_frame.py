@@ -16,7 +16,7 @@ from backend.speed_detection.idtracker.trackable_object import TrackableObject
 from backend.speed_detection.search_speed import SearchSpeed
 
 # процент распознавания
-PERCENT = os.environ.get('PERCENT', 0.2)
+PERCENT = os.environ.get('PERCENT', 0.4)
 # интервал времени, в котором выполняется поиск скорости
 TIME = os.environ.get('TIME', 1)
 

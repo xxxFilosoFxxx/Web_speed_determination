@@ -8,14 +8,13 @@
         <q-toolbar-title>
           <q-btn round to="/">
             <q-avatar size="40px">
-              <img class="logo-img" src="@/assets/clipboard.png"/>
+              <img class="logo-img" src="@/assets/play.png"/>
             </q-avatar>
           </q-btn>
-           Приложение для отправки задач в очередь
+           Определения скорости человека в видеопотоке
         </q-toolbar-title>
         <q-space />
 
-        <!--      <q-tabs v-model="tab">-->
         <q-tabs v-if="!username  || username.length === 0"
                 class="text-white" indicator-color="orange" shrink stretch>
           <q-route-tab name="username" icon="assignment_ind" label="Вход" to="/login" />
@@ -53,7 +52,7 @@
             </q-item-section>
 
             <q-item-section>
-              Список задач
+              Список видеозаписей
             </q-item-section>
           </q-item>
 
@@ -65,7 +64,7 @@
             </q-item-section>
 
             <q-item-section>
-              Обновить список задач
+              Обновить список видеозаписей
             </q-item-section>
           </q-item>
 

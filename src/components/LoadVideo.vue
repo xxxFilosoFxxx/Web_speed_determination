@@ -32,7 +32,7 @@
 
         <q-tab-panels v-model="tab" animated>
           <q-tab-panel name="one">
-            <div ref="preview" id="preview"></div>
+            <div v-show="file" ref="preview" id="preview"></div>
             <q-separator />
 
             <div v-show="file">
@@ -45,14 +45,16 @@
                 <input class="input-draw" id="input1" type="text" size="5">
                 <input class="input-draw" id="input2" type="text" size="5">
               </div>
-              <q-btn-group>
-                <q-btn type="submit" push
-                       label="Отправить" icon="timeline" color="primary"/>
-                <q-btn id="clearCanvas"  @click="clearCanvas()" push
-                       label="Очистить поле" icon="update" color="primary"/>
-                <q-btn id="drawGrid" @click="drawGrid()" push
-                       label="Нарисовать сетку" icon="visibility" color="primary"/>
-              </q-btn-group>
+              <div class="column items-center">
+                <q-btn-group>
+                  <q-btn type="submit" push
+                         label="Отправить" icon="timeline" color="primary"/>
+                  <q-btn id="clearCanvas"  @click="clearCanvas()" push
+                         label="Очистить поле" icon="update" color="primary"/>
+                  <q-btn id="drawGrid" @click="drawGrid()" push
+                         label="Нарисовать сетку" icon="visibility" color="primary"/>
+                </q-btn-group>
+              </div>
             </div>
           </q-tab-panel>
         </q-tab-panels>
@@ -91,12 +93,12 @@
 
       return {
         tab,
-        showNotify() {
+        showNotify(filename, id, status) {
           $q.notify({
             color: 'green-4',
             textColor: 'white',
             icon: 'cloud_done',
-            message: 'Задача отправлена на обработку'
+            message: `Видеозапись ${filename} с id=${id} отправлена на обработку со статусом ${status}`
           });
         }
       }
@@ -114,7 +116,10 @@
         }
 
         let video = document.createElement('video');
-        setAttributes(video, {'width': '1280', 'height': '720', 'controls': '', 'loop': ''});
+        setAttributes(video, {'width': '1280',
+                                     'height': '720',
+                                     'controls': '',
+                                     'loop': ''});
         video.file = this.file;
         this.videoPreview = video;
         this.$refs.preview.appendChild(video);
@@ -346,7 +351,7 @@
         this.distance = [];
         canvasGrid.style.display = 'none';
       },
-      drawGrid(step = 2) {
+      drawGrid(step = 1) {
         this.distance = [];
         let canvasGrid = document.getElementById('canvas4');
         canvasGrid.style.display = 'block';
@@ -414,7 +419,7 @@
           // console.log('SUCCESS!!');
           if (response.status === 202) {
             let task = {filename: response.data['file'], id: response.data['task_id'], status: response.data.status};
-            console.log(task);
+            this.showNotify(task.filename, task.id, task.status);
           }
         })
         .catch(function(){
@@ -428,9 +433,14 @@
 <style lang="scss">
   #preview {
     /*margin-top: -40px;*/
+    position: relative;
+    margin: 0 auto 1%;
+    width: 1280px;
+    height: 720px;
   }
   #drawingImage {
     position: relative;
+    margin: 1% auto 0;
     width: 1280px;
     height: 720px;
   }
