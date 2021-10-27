@@ -1,4 +1,6 @@
-from flask import render_template, jsonify, request
+import os
+
+from flask import render_template, jsonify, request, send_from_directory, send_file
 from flask_login import login_required, logout_user, current_user
 from backend.app import app
 from backend.utils import operations_utils as op
@@ -123,7 +125,10 @@ def result_task(task_id):
             response = {
                 'task_id': task_id,
                 'state': task.state,
-                'task_result': task.result,  # None
+                'task_result': {
+                    'filename': None,
+                    'video': None
+                },
                 'info': str(task.info)  # Содержит task.result в формате json
             }
         elif task.state != 'FAILURE':  # Цвет -> Зеленый/Желтай
@@ -154,6 +159,17 @@ def result_task(task_id):
                 'info': str(task.info)  # Информация об ошибке
             }
         return jsonify(response), 200
+    except Exception:
+        app.logger.exception(process_log_string(request))
+        raise
+
+
+@app.route('/source_video/<video>', methods=['GET'])
+@login_required
+def source_video(video):
+    try:
+        return send_from_directory(app.config['UPLOAD_FOLDER'], filename=video,
+                                   as_attachment=False, mimetype='video/mp4')
     except Exception:
         app.logger.exception(process_log_string(request))
         raise

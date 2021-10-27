@@ -19,8 +19,9 @@
             </q-badge>
           </q-td>
           <q-td key="video" :props="props">
-            <video v-if="props.row.video !== null && props.row.video !== undefined" width="400" height="300" controls>
-              <source :src="require(`../../backend/media/${props.row.video}`)" type='video/mp4; codecs="avc1.42E01E, mp4a.40.2"'>
+            <video v-if="props.row.video !== null && props.row.video !== undefined" ref="video"
+                   width="400" height="300" controls>
+              <source :src="'/source_video/' + props.row.video" type='video/mp4; codecs="avc1.42E01E, mp4a.40.2"'>
             </video>
           </q-td>
           <q-td key="status" :props="props">
@@ -33,7 +34,8 @@
 </template>
 
 <script>
-export default {
+  export default {
+
   name: "GetTasks",
   data() {
     return {
@@ -51,7 +53,12 @@ export default {
       ],
       rows: [this.$store.state.currentTask]
     }
-  }
+  },
+  // mounted() {
+  //   if (this.rows[0].video !== null && this.rows[0].video !== undefined) {
+  //     this.$refs.video.src = `/source_video/${this.rows[0].video}`;
+  //   }
+  // }
 }
 </script>
 <style scoped>

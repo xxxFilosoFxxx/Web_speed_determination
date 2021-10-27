@@ -420,6 +420,7 @@
           if (response.status === 202) {
             let task = {filename: response.data['file'], id: response.data['task_id'], status: response.data.status};
             this.showNotify(task.filename, task.id, task.status);
+            this.file = ref(null);
           }
         })
         .catch(function(){

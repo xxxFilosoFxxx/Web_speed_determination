@@ -19,7 +19,7 @@
           </q-td>
           <q-td key="video" :props="props">
             <video v-if="props.row.video !== null && props.row.video !== undefined" width="400" height="300" controls>
-              <source :src="require(`../../backend/media/${props.row.video}`)" type='video/mp4; codecs="avc1.42E01E, mp4a.40.2"'>
+              <source :src="'/source_video/' + props.row.video" type='video/mp4; codecs="avc1.42E01E, mp4a.40.2"'>
             </video>
           </q-td>
           <q-td key="status" :props="props">
