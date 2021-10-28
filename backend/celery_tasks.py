@@ -6,8 +6,10 @@ from backend.speed_detection.detection_frame import DetectionPeople
 
 
 def convert_video(path, video):
-    command = f"ffmpeg -i '{path}/{video}' -c:v libx264 -c:a aac -crf 14 '{path}/SPEED_{video}'"
-    subprocess.call(command, shell=True)
+    command_ffmpeg = f"ffmpeg -i '{path}/{video}' -c:v libx264 -c:a aac -crf 14 '{path}/SPEED_{video}'"
+    command_rm_old_video = f"rm '{path}/{video}'"
+    subprocess.call(command_ffmpeg, shell=True)
+    subprocess.call(command_rm_old_video, shell=True)
 
 
 @celery.task(bind=True)

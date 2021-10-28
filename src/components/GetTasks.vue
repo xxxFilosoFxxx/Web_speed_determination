@@ -19,9 +19,9 @@
             </q-badge>
           </q-td>
           <q-td key="video" :props="props">
-            <video v-if="props.row.video !== null && props.row.video !== undefined" ref="video"
+            <video v-if="props.row.video !== null && props.row.video !== undefined" :src="sourceVideo(props.row.video)"
                    width="400" height="300" controls>
-              <source :src="'/source_video/' + props.row.video" type='video/mp4; codecs="avc1.42E01E, mp4a.40.2"'>
+<!--              <source :src="sourceVideo(props.row.video)" type='video/mp4; codecs="avc1.42E01E, mp4a.40.2"'>-->
             </video>
           </q-td>
           <q-td key="status" :props="props">
@@ -36,30 +36,30 @@
 <script>
   export default {
 
-  name: "GetTasks",
-  data() {
-    return {
-      columns: [{
-        name: 'id',
-        required: true,
-        label: 'Id Видео',
-        align: 'left',
-        field: row => row.id,
-        format: val => `${val}`
-        },
-        { name: 'filename', align: 'center', label: 'Название', field: 'filename'},
-        { name: 'video', align: 'center', label: 'Видеофайл', field: 'video'},
-        { name: 'status', align: 'right', label: 'Статус', field: 'status'}
-      ],
-      rows: [this.$store.state.currentTask]
+    name: "GetTasks",
+    data() {
+      return {
+        columns: [{
+          name: 'id',
+          required: true,
+          label: 'Id Видео',
+          align: 'left',
+          field: row => row.id,
+          format: val => `${val}`
+          },
+          { name: 'filename', align: 'center', label: 'Название', field: 'filename'},
+          { name: 'video', align: 'center', label: 'Видеофайл', field: 'video'},
+          { name: 'status', align: 'right', label: 'Статус', field: 'status'}
+        ],
+        rows: [this.$store.state.currentTask]
+      }
+    },
+    methods: {
+      sourceVideo(videoName) {
+        return '/source_video/' + videoName;
+      }
     }
-  },
-  // mounted() {
-  //   if (this.rows[0].video !== null && this.rows[0].video !== undefined) {
-  //     this.$refs.video.src = `/source_video/${this.rows[0].video}`;
-  //   }
-  // }
-}
+  }
 </script>
 <style scoped>
 
