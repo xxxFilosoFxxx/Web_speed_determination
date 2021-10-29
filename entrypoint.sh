@@ -1,7 +1,5 @@
 #!/bin/bash
 
-. /venv/bin/activate
-
 # Wait for db
 if [ "$DATABASE" = "postgres" ]
 then
@@ -22,4 +20,4 @@ then
     echo "Tables created"
 fi
 
-gunicorn -e APP_SETTINGS="backend.config.Config" -b 0.0.0.0:8888 -w 4 backend.app:app
+gunicorn -b 0.0.0.0:8888 -w 4 backend.app:app

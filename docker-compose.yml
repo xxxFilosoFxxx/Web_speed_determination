@@ -2,7 +2,9 @@ version: '3'
 
 services:
   web:
-    build: .
+    build:
+      context: ./
+      dockerfile: web.dockerfile
     image: speed-web:1.0
     container_name: web
     restart: unless-stopped
@@ -16,7 +18,9 @@ services:
       - ./.env
 
   worker:
-    build: .
+    build:
+      context: ./
+      dockerfile: web.dockerfile
     image: speed-worker:1.0
     container_name: worker
     restart: unless-stopped
@@ -50,7 +54,9 @@ services:
       - ./.env.db
 
   nginx:
-    build: ./nginx
+    build:
+      context: ./
+      dockerfile: nginx.dockerfile
     image: speed-nginx:1.0
     container_name: nginx
     restart: unless-stopped
