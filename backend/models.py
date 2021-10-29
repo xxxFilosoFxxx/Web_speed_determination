@@ -45,14 +45,13 @@ class UserTasks(db.Model):
 
 class InitDbCommand(Command):
     def run(self):
-        print('Создание таблиц в базе данных...')
         init_db()
-        print('Таблицы созданы!')
 
 
 def init_db():
     db.drop_all()
     db.create_all()
+    db.session.commit()
 
 
 @login.user_loader

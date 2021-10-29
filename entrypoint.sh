@@ -1,30 +1,25 @@
-sudo service rabbitmq-server start
-sudo rabbitmq-plugins enable rabbitmq_management
+#!/bin/bash
 
-[Если БД не установлена и нет базы]
-#  (Установить psql)
-  sudo apt install postgresql postgresql-contrib
-#  (Создание базы)
-  sudo -u postgres psql
-  create database tasks_docs;
-  create user test;
-  alter database task_docs owner to test;
-  alter user test with encrypted password 'test';
-#  (migrate БД)
-  python3 manage.py db init_db
-  python3 manage.py db migrate
-  python3 manage.py db upgrade
+. /venv/bin/activate
 
-export APP_SETTINGS="backend.config.Config"
-export APP_SECRET="Super secret key"
-export DATABASE_URL="postgresql://test:test@localhost/tasks_docs" # Ваш url
+# Wait for db
+if [ "$DATABASE" = "postgres" ]
+then
+    echo "Waiting for postgres..."
 
-export PROJECT_ENV="prod"
+    while ! nc -z $SQL_HOST $SQL_PORT; do
+      sleep 0.1
+    done
 
-[Для запуска celery]
-celery -A backend.app.celery worker -l info
+    echo "PostgreSQL started"
+fi
 
+# run create db
+if [ "$PROJECT_ENV" = "prod" ]
+then
+    echo "Creating the database tables..."
+    python manage.py init_db
+    echo "Tables created"
+fi
 
-[Если другой адрес для очереди задач]
-  export CELERY_BROKER_URL="amqp://guest:guest@localhost:5672//" # Ваш url
-  export RESULT_BACKEND="db+postgresql+psycopg2://test:test@localhost/tasks_docs" # Ваш url
+gunicorn -e APP_SETTINGS="backend.config.Config" -b 0.0.0.0:8888 -w 4 backend.app:app

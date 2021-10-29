@@ -1,5 +1,6 @@
 .DS_Store
 node_modules
+package-lock.json
 /dist
 backend/media
 
@@ -11,6 +12,9 @@ venv/
 # local env files
 .env.local
 .env.*.local
+
+# local deploy files
+entrypoint.local.sh
 
 # Log files
 npm-debug.log*

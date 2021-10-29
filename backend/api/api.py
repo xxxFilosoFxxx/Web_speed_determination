@@ -54,24 +54,6 @@ def register():
         raise
 
 
-# @api_bp.route('/send_task', methods=['POST'])
-# @login_required
-# def for_send_task(countdown: int = 5):
-#     try:
-#         msisdn = request.json.get('msisdn', None)
-#         radius = request.json.get('radius', None)
-#         delta = request.json.get('delta', None)
-#         username = request.json.get('username', None)
-#
-#         task = send_task.apply_async(args=[msisdn, radius, delta], countdown=countdown)
-#         op.send_task_progress(task.id, username)
-#         # print(f'Обработка данных пользователя {username}: {msisdn}, {radius}, {delta} через {countdown} секунд!')
-#         return jsonify({'task_id': task.id, 'status': task.state}), 202
-#     except Exception:
-#         app.logger.exception(process_log_string(request))
-#         raise
-
-
 @api_bp.route('/load_video', methods=['POST'])
 @login_required
 def load_video():

@@ -1,5 +1,3 @@
-import os
-
 from flask import render_template, jsonify, request, send_from_directory, send_file
 from flask_login import login_required, logout_user, current_user
 from backend.app import app
@@ -38,20 +36,6 @@ def logout():
     except Exception:
         app.logger.exception(process_log_string(request))
         raise
-
-
-# @app.route('/live_video/<filename>', methods=['GET'])
-# @login_required
-# def live_video(filename):
-#     try:
-#         print("[INFO] starting save video...")
-#         path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-#         new_video = DetectionPeople(path)
-#         return Response(generate(new_video),
-#                         mimetype='multipart/x-mixed-replace; boundary=frame')
-#     except Exception:
-#         app.logger.exception(process_log_string(request))
-#         raise
 
 
 @app.route('/status_tasks', methods=['GET'])

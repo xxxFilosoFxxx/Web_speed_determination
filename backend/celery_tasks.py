@@ -14,6 +14,7 @@ def convert_video(path, video):
 
 @celery.task(bind=True)
 def video_processing(self, path, filename) -> dict:
+    # TODO: добавить профилировщик cProfile + memory_profiler
     new_video = DetectionPeople(path)
     self.update_state(state='PROGRESS', meta={'filename': filename})
     video = new_video.save_frames(filename)
