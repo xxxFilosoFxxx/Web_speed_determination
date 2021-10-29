@@ -1,4 +1,4 @@
-FROM node:16-alpine as static
+FROM node:16-alpine as build-stage
 WORKDIR /app
 COPY ../package*.json ./
 COPY ../vue.config.js ./
@@ -11,4 +11,4 @@ RUN npm run build
 FROM nginx:latest
 RUN rm /etc/nginx/conf.d/default.conf
 COPY nginx.conf /etc/nginx/conf.d
-COPY --from=static /app/dist app/
+COPY --from=build-stage /app/dist app/

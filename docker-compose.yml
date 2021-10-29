@@ -5,35 +5,60 @@ services:
     build: .
     image: speed-web:1.0
     container_name: web
-    restart: always
-    ports:
-      - 8000:8888
+    restart: unless-stopped
+    command: ./entrypoint.sh
+    expose:
+      - 8888
     depends_on:
       - db
+      - rabbitmq
     env_file:
       - ./.env
-    networks:
-      - backend
+
+  worker:
+    build: .
+    image: speed-worker:1.0
+    container_name: worker
+    restart: unless-stopped
+    command: celery -A backend.app.celery worker -l info
+    depends_on:
+      - db
+      - rabbitmq
+    env_file:
+      - ./.env
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: rabbitmq
+    restart: unless-stopped
+    environment:
+      - RABBITMQ_DEFAULT_USER=guest
+      - RABBITMQ_DEFAULT_PASS=guest
+    ports:
+      - "15672:15672"
+      - "5672:5672"
+    volumes:
+      - rabbitmq_storage:/var/lib/rabbitmq
+
   db:
     image: postgres:13-alpine
     container_name: db
+    restart: unless-stopped
     volumes:
       - postgres_data:/var/lib/postgresql/data/
     env_file:
       - ./.env.db
-    restart: always
+
   nginx:
     build: ./nginx
     image: speed-nginx:1.0
     container_name: nginx
+    restart: unless-stopped
     ports:
       - 80:80
     depends_on:
       - web
 
-networks:
-  backend:
-    driver: bridge
-
 volumes:
   postgres_data:
+  rabbitmq_storage:
