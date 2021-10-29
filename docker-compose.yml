@@ -4,13 +4,13 @@ services:
   web:
     build:
       context: ./
-      dockerfile: web.dockerfile
+      dockerfile: Dockerfile
     image: speed-web:1.0
     container_name: web
     restart: unless-stopped
     command: ./entrypoint.sh
-    expose:
-      - 8888
+    ports:
+      - 8888:8888
     depends_on:
       - db
       - rabbitmq
@@ -20,7 +20,7 @@ services:
   worker:
     build:
       context: ./
-      dockerfile: web.dockerfile
+      dockerfile: Dockerfile
     image: speed-worker:1.0
     container_name: worker
     restart: unless-stopped
@@ -36,11 +36,11 @@ services:
     container_name: rabbitmq
     restart: unless-stopped
     environment:
-      - RABBITMQ_DEFAULT_USER=guest
-      - RABBITMQ_DEFAULT_PASS=guest
+      - RABBITMQ_DEFAULT_USER=admin
+      - RABBITMQ_DEFAULT_PASS=admin
     ports:
-      - "15672:15672"
-      - "5672:5672"
+      - 15672:15672
+      - 5672:5672
     volumes:
       - rabbitmq_storage:/var/lib/rabbitmq
 
@@ -48,22 +48,12 @@ services:
     image: postgres:13-alpine
     container_name: db
     restart: unless-stopped
+    ports:
+      - 5432:5432
     volumes:
       - postgres_data:/var/lib/postgresql/data/
     env_file:
       - ./.env.db
-
-  nginx:
-    build:
-      context: ./
-      dockerfile: nginx.dockerfile
-    image: speed-nginx:1.0
-    container_name: nginx
-    restart: unless-stopped
-    ports:
-      - 80:80
-    depends_on:
-      - web
 
 volumes:
   postgres_data:
