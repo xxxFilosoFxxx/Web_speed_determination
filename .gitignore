@@ -2,7 +2,7 @@
 node_modules
 package-lock.json
 /dist
-backend/media
+backend/media/
 
 *.pyc
 .coverage
@@ -15,6 +15,10 @@ venv/
 
 # local deploy files
 entrypoint.local.sh
+
+#test files
+proccess_test.py
+resources_test
 
 # Log files
 npm-debug.log*
