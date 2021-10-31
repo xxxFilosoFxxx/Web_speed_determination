@@ -17,7 +17,7 @@ venv/
 entrypoint.local.sh
 
 #test files
-proccess_test.py
+process*test.py
 resources_test
 
 # Log files

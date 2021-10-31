@@ -9,7 +9,7 @@ class Config(object):
     ROOT_DIR = os.path.dirname(APP_DIR)
     DIST_DIR = os.path.join(ROOT_DIR, 'dist')
     LOG_PATH = os.path.abspath(ROOT_DIR) + '/error.log'
-    UPLOAD_FOLDER = os.path.abspath(APP_DIR) + '/media'
+    UPLOAD_FOLDER = os.path.join(APP_DIR, 'media')
     CSRF_ENABLES = True
     SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL', 'postgresql://test:test@localhost/tasks_docs')
     SQLALCHEMY_TRACK_MODIFICATIONS = False
@@ -19,4 +19,6 @@ class Config(object):
 
     if not os.path.exists(DIST_DIR):
         raise Exception(f'DIST_DIR not found: {DIST_DIR}')
+    if not os.path.exists(UPLOAD_FOLDER):
+        os.mkdir(UPLOAD_FOLDER)
     # ВОЗМОЖНО -> db+postgresql+psycopg2://test:test@localhost/tasks_docs_meta

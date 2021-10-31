@@ -6,6 +6,7 @@
 from collections import OrderedDict
 import math
 import copy
+import numpy as np
 import os
 
 # Дельта скорости объекта
@@ -44,39 +45,43 @@ class SearchSpeed:
         self.last_centroids = copy.deepcopy(objects)
         return self.last_centroids
 
-    def search_speed(self, width, skip_frames, i):
+    def search_speed(self, i, matrix, ratio_width):
         """
             Основаня функция для поиска скорости объекта
         Args:
-            width: ширина выделенной фигуры объекта
-            skip_frames: частота кадров в секунду на видео
             i: идентификатор объекта
-
+            matrix: обратная матрица фактического расстояния плоскости
+            ratio_width: отношение разрешения формата видео
         Returns:
             скорость объекта
         """
         # по расстоянию Евклида на основе локационной привязки определить скорость объекта
         if i in self.centroids and i in self.last_centroids:
-            d_pixels = math.sqrt(math.pow(self.last_centroids[i][0] - self.centroids[i][0], 2) +
-                                 math.pow(self.last_centroids[i][1] - self.centroids[i][1], 2))
-            ppm = (width / WIDTH) * 10
-            # определение через параметры не корректно!!!
-            d_meters = d_pixels / ppm
-            fps = skip_frames
-            speed = d_meters * fps * 3.6
-            return int(speed)  # Средняя скорость идущего человека 5-6 км/ч, бег 10-15 км/ч
+            inverse_matrix = np.matrix(matrix)
+            centroids_matrix = np.matrix([[self.centroids[i][0]], [self.centroids[i][1]], [1]])
+            last_centroids_matrix = np.matrix([[self.last_centroids[i][0]], [self.last_centroids[i][1]], [1]])
+            old_place_matrix = inverse_matrix * centroids_matrix
+            new_place_matrix = inverse_matrix * last_centroids_matrix
+            old_place = [old_place_matrix.A1[0] / old_place_matrix.A1[2],
+                         old_place_matrix.A1[1] / old_place_matrix.A1[2]]
+            new_place = [new_place_matrix.A1[0] / new_place_matrix.A1[2],
+                         new_place_matrix.A1[1] / new_place_matrix.A1[2]]
+            d_speed = math.sqrt(math.pow(new_place[0] - old_place[0], 2) +
+                                math.pow(new_place[1] - old_place[1], 2))
+            speed = (d_speed * 3.6) / ratio_width
+            return int(round(speed))  # Средняя скорость идущего человека 5-6 км/ч, бег 10-15 км/ч
         else:
             return 0
 
-    def search_delta_speed(self, width, skip_frames, i):
+    def search_delta_speed(self, i, matrix, ratio_width):
         """
             Функция для записи текущей скорости и высчитывание дельты
         Args:
-            width: ширина выделенной фигуры объекта
-            skip_frames: частота кадров в секунду на видео
             i: идентификатор объекта
+            matrix: обратная матрица фактического расстояния плоскости
+            ratio_width: отношение разрешения формата видео
         """
-        speed = self.search_speed(width, skip_frames, i)
+        speed = self.search_speed(i, matrix, ratio_width)
         if i in self.speed:
             delta = speed - self.speed[i]
             if abs(delta) > DELTA:  # Дельта скорости объекта

@@ -76,6 +76,7 @@
       return {
         file: ref(null),
         videoPreview: ref(null),
+        ratioWidth: ref(null),
         mouse: { x:0, y:0 },
         mouseTo: { x:0, y:0 },
         draw: false,
@@ -116,11 +117,13 @@
         }
 
         let video = document.createElement('video');
-        setAttributes(video, {'width': '1280',
-                                     'height': '720',
-                                     'controls': '',
-                                     'loop': ''});
         video.file = this.file;
+        // Получаем разрешение видеозаписи
+        video.addEventListener( "loadedmetadata", this.getMetaData, false );
+        setAttributes(video, {'width': '1280',
+          'height': '720',
+          'controls': '',
+          'loop': ''});
         this.videoPreview = video;
         this.$refs.preview.appendChild(video);
         let reader = new FileReader();
@@ -132,6 +135,10 @@
       }
     },
     methods: {
+      getMetaData(e) {
+        this.ratioWidth = e.target.videoWidth / 1280;
+        // this.ratioHeight = e.target.videoHeight / 720;
+      },
       distanceEuclid(a, b) {
         return Math.sqrt(Math.pow(b[0] - a[0], 2) + Math.pow(b[1] - a[1], 2));
       },
@@ -401,13 +408,14 @@
       },
       getMatrix() {
         const projectionCalculator = new ProjectionCalculator2d(this.distance, this.pixels);
-        return projectionCalculator.resultMatrix;
+        return projectionCalculator.resultMatrixInversed;
       },
       submitFile() {
         let formData = new FormData();
         let resultMatrix = this.getMatrix();
         formData.append('file', this.file);
-        formData.append('matrix', resultMatrix.toString()); // Матрица 3х3 в виде строки
+        formData.append('matrix', JSON.stringify(resultMatrix)); // Матрица 3х3 в виде json
+        formData.append('width', JSON.stringify(this.ratioWidth));
         axios.post( '/api/load_video',
           formData,
           {

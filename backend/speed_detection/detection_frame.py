@@ -16,7 +16,7 @@ from backend.speed_detection.idtracker.trackable_object import TrackableObject
 from backend.speed_detection.search_speed import SearchSpeed
 
 # процент распознавания
-PERCENT = os.environ.get('PERCENT', 0.4)
+PERCENT = os.environ.get('PERCENT', 0.2)
 # интервал времени, в котором выполняется поиск скорости
 TIME = os.environ.get('TIME', 1)
 
@@ -94,7 +94,7 @@ class DetectionPeople:
             cv2.rectangle(frame, (x_left_bottom, y_left_bottom), (x_right_top, y_right_top),
                           (0, 255, 0))  # Определение контура человека
 
-    def object_and_speed(self, filename, objects, frame):
+    def object_and_speed(self, filename, objects, frame, matrix, ratio_width):
         """
         Функция осуществляет отслеживание, идентификацию,
         подсчет скорости объектов и вывод инфо в заданный файл
@@ -124,8 +124,7 @@ class DetectionPeople:
 
             if self.frame_count % (int(self.skip_frames) * TIME) == 0 or \
                     object_id not in self.centroids.speed:
-                # берем высотку и ширину выделенной фигуры объекта для нахождения скорсоти
-                self.centroids.search_delta_speed(centroid[2], self.skip_frames, object_id)
+                self.centroids.search_delta_speed(object_id, matrix, ratio_width)
                 self.centroids.save_speed(filename, int(self.frame_count / self.skip_frames),
                                           object_id, self.centroids.speed[object_id])
 
@@ -244,7 +243,7 @@ class DetectionPeople:
     #     out_video.release()
     #     return 0
 
-    def save_frames(self, name):
+    def save_frames(self, name, matrix, ratio_width):
         """
         Функция сохраняет видеозапись после обработки
         """
@@ -277,7 +276,7 @@ class DetectionPeople:
                 else:
                     self.status_tracking(rect, rgb, frame, trackers)
                 objects = centroid_tracker.update(rect)
-                self.object_and_speed(filename_csv, objects, frame)
+                self.object_and_speed(filename_csv, objects, frame, matrix, ratio_width)
 
                 info = [
                     ("Number of tracked objects", len(objects)),

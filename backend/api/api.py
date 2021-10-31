@@ -7,8 +7,6 @@ from werkzeug.utils import secure_filename
 from backend.app import app
 from backend.utils import operations_utils as op
 from backend.utils.common_utils import process_log_string
-# from backend.celery_tasks import send_task
-# from backend.speed_detection.detection_frame import DetectionPeople
 from backend.celery_tasks import video_processing
 from . import api_bp
 
@@ -61,6 +59,8 @@ def load_video():
         if 'file' not in request.files:
             return jsonify({'file': 'Ошибка загрузки видео'})
         file = request.files['file']
+        matrix = eval(request.form['matrix'])
+        width = float(request.form['width'])
         if file.filename == '':
             return jsonify({'file': 'Нет выбранного файла'})
         filename = secure_filename(file.filename)
@@ -68,8 +68,7 @@ def load_video():
         file.save(path)
         print("[INFO] starting save video...")
         username = current_user.username
-        # new_video = DetectionPeople(path)
-        task = video_processing.delay(path, filename)
+        task = video_processing.delay(path, filename, matrix, width)
         op.send_task_progress(task.id, username)
         return jsonify({'file': filename, 'task_id': task.id, 'status': task.state}), 202
     except Exception:

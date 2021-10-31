@@ -13,10 +13,10 @@ def convert_video(path, video):
 
 
 @celery.task(bind=True)
-def video_processing(self, path, filename) -> dict:
+def video_processing(self, path, filename, matrix, width) -> dict:
     new_video = DetectionPeople(path)
     self.update_state(state='PROGRESS', meta={'filename': filename})
-    video = new_video.save_frames(filename)
+    video = new_video.save_frames(filename, matrix, width)
 
     dir_path = os.path.dirname(path)
     convert_video(dir_path, video)

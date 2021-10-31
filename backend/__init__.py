@@ -1,4 +1,4 @@
-from flask import render_template, jsonify, request, send_from_directory, send_file
+from flask import render_template, jsonify, request, send_from_directory
 from flask_login import login_required, logout_user, current_user
 from backend.app import app
 from backend.utils import operations_utils as op
