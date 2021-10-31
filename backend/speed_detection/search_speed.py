@@ -11,8 +11,6 @@ import os
 
 # Дельта скорости объекта
 DELTA = os.environ.get('DELTA', 0)
-# Длина шага объекта (ширина полосы движения)
-WIDTH = os.environ.get('WIDTH', 0.5)
 
 
 class SearchSpeed:
