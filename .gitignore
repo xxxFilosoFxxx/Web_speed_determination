@@ -16,7 +16,8 @@ venv/
 # local deploy files
 entrypoint.local.sh
 
-#test files
+# test files
+test
 process*test.py
 resources_test
 
