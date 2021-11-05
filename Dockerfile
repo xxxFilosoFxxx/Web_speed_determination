@@ -13,9 +13,10 @@ FROM python:3.8.5-slim-buster
 #ENV PYTHONUNBUFFERED=1
 RUN apt-get update && apt-get install 'ffmpeg' 'libsm6' 'libxext6' 'build-essential' 'cmake' 'netcat' -y
 WORKDIR /app
-COPY ./backend/ ./backend/
 COPY --from=build-stage /app/dist ./dist/
-COPY ./manage.py .
+COPY ./requirements.txt ./requirements.txt
 RUN pip install -U pip
-RUN pip install -r backend/requirements.txt
+RUN pip install -r ./requirements.txt
+COPY ./backend/ ./backend/
+COPY ./manage.py .
 COPY ./entrypoint.sh .

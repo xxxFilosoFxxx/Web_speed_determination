@@ -16,6 +16,9 @@ fi
 if [ "$PROJECT_ENV" = "prod" ]
 then
     echo "Creating the database tables..."
+    # TODO
+    # Очистить папку media, если такая есть
+    # Очистить таблицу celery_task (удалить и заново создать)
     python manage.py init_db
     echo "Tables created"
 fi

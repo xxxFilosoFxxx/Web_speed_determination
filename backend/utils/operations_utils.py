@@ -1,4 +1,5 @@
 # from typing import List, Dict, Any
+import subprocess
 from backend.app import db
 from backend.models import UserTasks, User
 from flask_login import login_user
@@ -40,6 +41,19 @@ def send_task_progress(uuid: str, username: str) -> None:
     task = UserTasks(uuid=uuid, user_id=user_id)
     db.session.add(task)
     session_commit()
+
+
+def delete_user_task_id(task_id: str) -> None:
+    task = UserTasks.query.filter_by(uuid=task_id).first()
+    db.session.delete(task)
+    session_commit()
+    db.engine.execute('delete from celery_taskmeta where task_id like %s', task_id)
+    session_commit()
+
+
+def delete_user_video(path: str, filename: str) -> None:
+    command_rm_video = f"rm '{path}/{filename}' '{path}/SPEED_{filename}.mp4' '{path}/CSV_{filename}.csv'"
+    subprocess.call(command_rm_video, shell=True)
 
 
 def get_user_tasks(username: str) -> list:  # List[Dict[str, Any]]

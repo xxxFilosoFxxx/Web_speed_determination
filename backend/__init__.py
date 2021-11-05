@@ -55,6 +55,26 @@ def status_tasks():
         raise
 
 
+@app.route('/delete_task', methods=['GET'])
+@login_required
+def delete_task():
+    try:
+        task_id = request.args['task_id']
+        op.delete_user_task_id(task_id)
+
+        path = app.config['UPLOAD_FOLDER']
+        filename = request.args['filename']
+        op.delete_user_video(path, filename)
+        response = {
+            'filename': filename,
+            'task_id': task_id
+        }
+        return jsonify(response), 200
+    except Exception:
+        app.logger.exception(process_log_string(request))
+        raise
+
+
 @app.route('/all_result_tasks', methods=['GET'])
 @login_required
 def all_result_tasks():

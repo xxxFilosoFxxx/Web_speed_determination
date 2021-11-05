@@ -19,10 +19,12 @@
             </q-badge>
           </q-td>
           <q-td key="video" :props="props">
-            <video v-if="props.row.video !== null && props.row.video !== undefined" :src="sourceVideo(props.row.video)"
-                   width="400" height="300" controls>
-<!--              <source :src="sourceVideo(props.row.video)" type='video/mp4; codecs="avc1.42E01E, mp4a.40.2"'>-->
-            </video>
+            <div v-if="props.row.video !== null && props.row.video !== undefined">
+              <div>
+                <video :src="sourceVideo(props.row.video)" width="400" height="300" controls></video>
+              </div>
+              <q-btn color="negative" label="Удалить" @click="deleteVideo(props.row.filename, props.row.id)"/>
+            </div>
           </q-td>
           <q-td key="status" :props="props">
             {{ props.row.status }}
@@ -34,6 +36,9 @@
 </template>
 
 <script>
+  import axios from "axios";
+  import {useQuasar} from "quasar";
+
   export default {
 
     name: "GetTasks",
@@ -54,9 +59,32 @@
         rows: [this.$store.state.currentTask]
       }
     },
+    setup() {
+      const $q = useQuasar();
+
+      return {
+        showNotify(filename, task_id) {
+          $q.notify({
+            color: 'red-4',
+            textColor: 'white',
+            icon: 'cloud_done',
+            message: `Видеозапись ${filename} с id=${task_id} была успешно удалена`
+          });
+        }
+      }
+    },
     methods: {
       sourceVideo(videoName) {
         return '/source_video/' + videoName;
+      },
+      deleteVideo(fileName, taskId) {
+        axios.get('/delete_task', { params: { task_id: taskId, filename: fileName } })
+          .then((response) => {
+              this.showNotify(response.data.filename, response.data.task_id);
+          })
+          .catch(function () {
+              alert('Ошибка при удалении видеофайла');
+          });
       }
     }
   }
