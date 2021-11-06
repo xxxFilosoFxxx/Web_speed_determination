@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Wait for db
+# Ждем БД
 if [ "$DATABASE" = "postgres" ]
 then
     echo "Waiting for postgres..."
@@ -12,15 +12,13 @@ then
     echo "PostgreSQL started"
 fi
 
-# run create db
+# Запускаем создание таблиц в БД
 if [ "$PROJECT_ENV" = "prod" ]
 then
     echo "Creating the database tables..."
-    # TODO
-    # Очистить папку media, если такая есть
-    # Очистить таблицу celery_task (удалить и заново создать)
+    # сохранить все данные ИЛИ запускать полностью чистым
     python manage.py init_db
-    echo "Tables created"
+    echo "Tables created or already exist"
 fi
 
 gunicorn -b 0.0.0.0:8888 -w 4 backend.app:app

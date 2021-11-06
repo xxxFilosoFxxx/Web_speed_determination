@@ -49,7 +49,8 @@ class InitDbCommand(Command):
 
 
 def init_db():
-    db.drop_all()
+    # Еслм нужно пересоздавать БД, используй migrate or drop_all()
+    # db.drop_all()
     db.create_all()
     db.session.commit()
 
