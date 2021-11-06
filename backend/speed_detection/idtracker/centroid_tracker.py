@@ -1,10 +1,8 @@
-# pylint: disable=R0912, R0914
-"""
-Основной скрипт для отслеживания объектов
-"""
+"""Основной скрипт для отслеживания объектов."""
 from collections import OrderedDict
-from scipy.spatial import distance as dist
+
 import numpy as np
+from scipy.spatial import distance as dist
 
 
 class CentroidTracker:

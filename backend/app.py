@@ -1,11 +1,12 @@
+"""Основной функционал и настройка сервера Flask."""
 import logging
+from logging.handlers import RotatingFileHandler
 import os
 
-from flask import Flask
-from flask_sqlalchemy import SQLAlchemy
-from flask_login import LoginManager
-from logging.handlers import RotatingFileHandler
 from celery import Celery
+from flask import Flask
+from flask_login import LoginManager
+from flask_sqlalchemy import SQLAlchemy
 
 
 app = Flask(__name__, static_url_path='/', static_folder='../dist', template_folder='../dist')

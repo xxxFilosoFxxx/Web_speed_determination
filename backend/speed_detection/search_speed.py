@@ -4,10 +4,12 @@
 детектирования и идентификации объектов
 """
 from collections import OrderedDict
-import math
 import copy
-import numpy as np
+import math
 import os
+
+import numpy as np
+
 
 # Дельта скорости объекта
 DELTA = os.environ.get('DELTA', 0)

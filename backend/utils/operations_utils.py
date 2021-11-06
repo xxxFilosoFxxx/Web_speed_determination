@@ -1,7 +1,9 @@
+"""Часто используемые операции для работы с БД."""
 # from typing import List, Dict, Any
 import subprocess
+
 from backend.app import db
-from backend.models import UserTasks, User
+from backend.models import User, UserTasks
 from flask_login import login_user
 
 

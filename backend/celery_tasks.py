@@ -1,5 +1,6 @@
-import subprocess
+"""Основной функционал для работы с очередью задач (rabbitmq) с помощью celery."""
 import os
+import subprocess
 
 from backend.app import celery
 from backend.speed_detection.detection_frame import DetectionPeople
@@ -14,6 +15,11 @@ def convert_video(path, video):
 
 @celery.task(bind=True)
 def video_processing(self, path, filename, matrix, width) -> dict:
+    # import pstats
+    # import cProfile
+    # profiler = cProfile.Profile()
+    # profiler.enable()
+
     new_video = DetectionPeople(path)
     self.update_state(state='PROGRESS', meta={'filename': filename})
     video = new_video.save_frames(filename, matrix, width)
@@ -21,4 +27,8 @@ def video_processing(self, path, filename, matrix, width) -> dict:
     dir_path = os.path.dirname(path)
     convert_video(dir_path, video)
     video = 'SPEED_' + video
+
+    # profiler.disable()
+    # stats = pstats.Stats(profiler)
+    # stats.dump_stats('../resources_test/time/process_time')
     return {'filename': filename, 'video': video}

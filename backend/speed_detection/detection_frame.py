@@ -1,19 +1,18 @@
 # pylint: disable=E0401, R0902, R0913, R0914, C0103, W0613, W0603
-"""
-Основной скрипт для распознавания и подсчета скорости объекта
-"""
+"""Основной функционал для распознавания и подсчета скорости объекта."""
 # import threading
 # from datetime import datetime
 import os
-import numpy as np
-import dlib
 
-from imutils.video import FPS
 from backend.app import app
-from cv2 import cv2
 from backend.speed_detection.idtracker.centroid_tracker import CentroidTracker
 from backend.speed_detection.idtracker.trackable_object import TrackableObject
 from backend.speed_detection.search_speed import SearchSpeed
+from cv2 import cv2
+import dlib
+from imutils.video import FPS
+import numpy as np
+
 
 # процент распознавания
 PERCENT = os.environ.get('PERCENT', 0.2)

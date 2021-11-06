@@ -1,9 +1,10 @@
+"""Основной функционал для работы с таблицами БД."""
 import datetime
 
-from werkzeug.security import generate_password_hash, check_password_hash
+from backend.app import db, login
 from flask_login import UserMixin
 from flask_script import Command
-from backend.app import db, login
+from werkzeug.security import check_password_hash, generate_password_hash
 
 
 class User(db.Model, UserMixin):

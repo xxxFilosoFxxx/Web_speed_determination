@@ -1,13 +1,14 @@
+"""Основной функционал для POST запросов."""
 import os
 
+from backend.app import app
+from backend.celery_tasks import video_processing
+from backend.utils import operations_utils as op
+from backend.utils.common_utils import process_log_string
 from flask import jsonify, request
 from flask_login import current_user, login_required
 from werkzeug.utils import secure_filename
 
-from backend.app import app
-from backend.utils import operations_utils as op
-from backend.utils.common_utils import process_log_string
-from backend.celery_tasks import video_processing
 from . import api_bp
 
 

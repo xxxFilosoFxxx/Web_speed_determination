@@ -1,10 +1,11 @@
-from flask import render_template, jsonify, request, send_from_directory
-from flask_login import login_required, logout_user, current_user
+"""Основной функционал для рендеринга страниц и GET запросов."""
+
 from backend.app import app
+from backend.celery_tasks import video_processing
 from backend.utils import operations_utils as op
 from backend.utils.common_utils import process_log_string
-from backend.celery_tasks import video_processing
-from backend.speed_detection.detection_frame import DetectionPeople
+from flask import jsonify, render_template, request, send_from_directory
+from flask_login import current_user, login_required, logout_user
 
 
 @app.route('/')

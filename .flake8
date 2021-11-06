@@ -1,0 +1,38 @@
+[flake8]
+exclude = .git,
+		  __pycache__,
+		  dist,
+		  venv,
+		  MobileNetSSD,
+		  backend/speed_detection/idtracker/trackable_object.py
+
+per-file-ignores =
+	# Игнорируем написание документации для функций
+	backend/__init__.py: D103,
+	# Игнорируем переменную id для каждой таблицы и
+	# написание документации для функций
+	backend/models.py: A003,D101,D102,D103,D105,D107,
+	# Игнорируем написание документации для класса
+	backend/config.py: D101,
+	# Игнорируем ошибки, связанные с import после напсиания кода
+	backend/app.py: E402,I100,I202,
+	# Игнорируем написание документации для функций
+	backend/celery_tasks.py: D103,
+	# Игнорируем ошибки, связанные с import после напсиания кода
+	backend/api/__init__.py: F401,E402,D104,I201
+	# Игнорируем написание документации для функций
+	backend/api/api.py: D103,
+	# Игнорируем
+	backend/utils/__init__.py: D104,
+	# Игнорируем документации для функций
+	backend/utils/operations_utils.py: D103,
+	# Игнорируем документации для функций
+	backend/utils/common_utils.py: D103,
+	# Игнорируем
+	backend/speed_detection/__init__.py: D104,
+	# Игнорируем
+	backend/speed_detection/idtracker/__init__.py: D104
+	
+
+max-line-length = 120
+import-order-style = google
