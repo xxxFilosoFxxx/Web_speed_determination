@@ -51,7 +51,7 @@ class DetectionPeople:
         # self.output_frame = self.frame
         # threading.Thread(target=self.translation_video, args=(filename,), daemon=True).start()
 
-    def search_people(self, wight, height, out, rgb, trackers):
+    def search_people(self, width, height, out, rgb, trackers):
         """
         Основная функция для детектирования объектов
         по назначенным классам
@@ -64,7 +64,7 @@ class DetectionPeople:
                     continue
 
                 # вычислить координаты ограничительной рамки для объекта
-                box = out[0, 0, i, 3:7] * np.array([wight, height, wight, height])
+                box = out[0, 0, i, 3:7] * np.array([width, height, width, height])
                 (x_left_bottom, y_left_bottom, x_right_top, y_right_top) = box.astype("int")
                 # Создаем прямоугольник объекта с помошью dlib из ограничивающего
                 # Поле координат, а затем запустить корреляцию dlib трекер
@@ -98,15 +98,13 @@ class DetectionPeople:
         Функция осуществляет отслеживание, идентификацию,
         подсчет скорости объектов и вывод инфо в заданный файл
         """
-        # Добавление центроидов каждую секунду в упорядоченный словарь для нахождения скорости
-        if self.frame_count % (int(self.skip_frames) * TIME) == 0:
+        # Добавление центроидов каждую секунду (или TIME) в упорядоченный словарь для нахождения скорости
+        if self.frame_count % (self.skip_frames * TIME) < 1:
             self.centroids.save_centroids(objects)
         # цикл по отслеживанию объектов
         for (idx, (object_id, centroid)) in enumerate(objects.items()):
-            # проверить, существует ли отслеживаемый объект для текущего
-            # идентификатор объекта
+            # проверить, существует ли отслеживаемый объект для текущего идентификатора объекта
             add_object = self.centroids.track.get(object_id, None)
-
             # если не существует отслеживаемого объекта, создаем его
             if add_object is None:
                 add_object = TrackableObject(object_id, centroid)
@@ -121,11 +119,12 @@ class DetectionPeople:
                         cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
             cv2.circle(frame, (centroid[0], centroid[1]), 5, (0, 0, 255), -1)
 
-            if self.frame_count % (int(self.skip_frames) * TIME) == 0 or \
+            if self.frame_count % (self.skip_frames * TIME) < 1 or \
                     object_id not in self.centroids.speed:
                 self.centroids.search_delta_speed(object_id, matrix, ratio_width)
-                self.centroids.save_speed(filename, int(self.frame_count / self.skip_frames),
-                                          object_id, self.centroids.speed[object_id])
+                if self.frame_count % (self.skip_frames * TIME) < 1:
+                    self.centroids.save_speed(filename, round(self.frame_count / self.skip_frames),
+                                              object_id, self.centroids.speed[object_id])
 
             speed_label = str("%d" % self.centroids.speed[object_id]) + " km/hr"
             speed_label_size, base_line = cv2.getTextSize(speed_label,
@@ -138,7 +137,7 @@ class DetectionPeople:
                           (255, 255, 255), cv2.FILLED)
             cv2.putText(frame, speed_label, (centroid[0] - 50, y_left_bottom - 100),
                         cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 0))
-            info = "time {}: ID {}: {}".format(int(self.frame_count / self.skip_frames),
+            info = "time {}: ID {}: {}".format(round(self.frame_count / self.skip_frames),
                                                int(object_id + 1), speed_label)
             cv2.putText(frame, info, (int(frame.shape[1] / 2), frame.shape[0] - ((idx * 50) + 50)),
                         cv2.FONT_HERSHEY_SIMPLEX, 1.2, (0, 0, 0), 1, cv2.LINE_AA)
@@ -147,16 +146,16 @@ class DetectionPeople:
         """
         Функция для задания настроек видеофайла
         """
-        wight = frame.shape[1]
+        width = frame.shape[1]
         height = frame.shape[0]
 
         blur = cv2.medianBlur(frame, 3)
 
-        blob = cv2.dnn.blobFromImage(blur, 0.007843, (wight, height), 127.5)
+        blob = cv2.dnn.blobFromImage(blur, 0.007843, (width, height), 127.5)
         self.net.setInput(blob)
         out = self.net.forward()
 
-        return wight, height, out
+        return width, height, out
 
     @staticmethod
     def statistics_output(info, frame):
@@ -205,8 +204,8 @@ class DetectionPeople:
     #             rect = list()
     #             if self.frame_count % int(self.skip_frames) == 0:
     #                 trackers = list()
-    #                 wight, height, out = self.config(self.frame)
-    #                 self.search_people(wight, height, out, rgb, trackers)
+    #                 width, height, out = self.config(self.frame)
+    #                 self.search_people(width, height, out, rgb, trackers)
     #             else:
     #                 self.status_tracking(rect, rgb, self.frame, trackers)
     #             objects = centroid_tracker.update(rect)
@@ -268,10 +267,10 @@ class DetectionPeople:
             if ret:
                 rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
                 rect = list()
-                if self.frame_count % int(self.skip_frames) == 0:
+                if self.frame_count % self.skip_frames < 1:
                     trackers = list()
-                    wight, height, out = self.config(frame)
-                    self.search_people(wight, height, out, rgb, trackers)
+                    width, height, out = self.config(frame)
+                    self.search_people(width, height, out, rgb, trackers)
                 else:
                     self.status_tracking(rect, rgb, frame, trackers)
                 objects = centroid_tracker.update(rect)
