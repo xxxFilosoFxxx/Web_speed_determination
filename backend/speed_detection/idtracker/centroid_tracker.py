@@ -1,4 +1,4 @@
-"""Основной скрипт для отслеживания объектов."""
+"""Основной функционал для отслеживания объектов."""
 from collections import OrderedDict
 
 import numpy as np
@@ -6,7 +6,7 @@ from scipy.spatial import distance as dist
 
 
 class CentroidTracker:
-    """ Основной класс для отслеживания объектов """
+    """Основной класс для отслеживания объектов."""
     def __init__(self, max_disappeared=50, max_distance=50):
         self.next_object_id = 0
         self.objects = OrderedDict()

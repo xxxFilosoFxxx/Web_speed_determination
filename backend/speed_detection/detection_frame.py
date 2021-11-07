@@ -15,7 +15,7 @@ import numpy as np
 
 
 # процент распознавания
-PERCENT = os.environ.get('PERCENT', 0.2)
+PERCENT = os.environ.get('PERCENT', 0.75)
 # интервал времени, в котором выполняется поиск скорости
 TIME = os.environ.get('TIME', 1)
 
@@ -78,7 +78,7 @@ class DetectionPeople:
     @staticmethod
     def status_tracking(rect, rgb, frame, trackers):
         """
-        Функция позволяет обновит позицию
+        Функция позволяет обновить позицию
         отслеживаемых объектов
         """
         for tracker in trackers:
@@ -119,6 +119,7 @@ class DetectionPeople:
                         cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
             cv2.circle(frame, (centroid[0], centroid[1]), 5, (0, 0, 255), -1)
 
+            # TODO: настроить отслеживание объектов
             if self.frame_count % (self.skip_frames * TIME) < 1 or \
                     object_id not in self.centroids.speed:
                 self.centroids.search_delta_speed(object_id, matrix, ratio_width)
@@ -149,8 +150,8 @@ class DetectionPeople:
         width = frame.shape[1]
         height = frame.shape[0]
 
+        # TODO: выбрать хороший фильтр
         blur = cv2.medianBlur(frame, 3)
-
         blob = cv2.dnn.blobFromImage(blur, 0.007843, (width, height), 127.5)
         self.net.setInput(blob)
         out = self.net.forward()
@@ -246,7 +247,7 @@ class DetectionPeople:
         Функция сохраняет видеозапись после обработки
         """
         fps = FPS().start()
-        centroid_tracker = CentroidTracker(max_disappeared=50, max_distance=60)
+        centroid_tracker = CentroidTracker(max_disappeared=180, max_distance=200)
         fourcc = cv2.VideoWriter_fourcc(*'mp4v')  # Не лучший вариант, но на выше стоящие кодеки вызывается ошибка
         if not self.cap.isOpened():
             print("[INFO] failed to process video")
