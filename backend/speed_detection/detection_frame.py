@@ -119,7 +119,7 @@ class DetectionPeople:
                         cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
             cv2.circle(frame, (centroid[0], centroid[1]), 5, (0, 0, 255), -1)
 
-            # TODO: настроить отслеживание объектов
+            # TODO: лучше настроить отслеживание объектов
             if self.frame_count % (self.skip_frames * TIME) < 1 or \
                     object_id not in self.centroids.speed:
                 self.centroids.search_delta_speed(object_id, matrix, ratio_width)
@@ -247,7 +247,7 @@ class DetectionPeople:
         Функция сохраняет видеозапись после обработки
         """
         fps = FPS().start()
-        centroid_tracker = CentroidTracker(max_disappeared=180, max_distance=200)
+        centroid_tracker = CentroidTracker(max_disappeared=100, max_distance=200)
         fourcc = cv2.VideoWriter_fourcc(*'mp4v')  # Не лучший вариант, но на выше стоящие кодеки вызывается ошибка
         if not self.cap.isOpened():
             print("[INFO] failed to process video")
